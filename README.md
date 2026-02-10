@@ -9,3 +9,13 @@
 ツールチェインのインストールをインストールします。
 
 ![ツールチェインのインストール](images/ツールチェインのインストール.png)
+
+## プロジェクトを開く
+
+`asp3_fsp.code-workspace`をVSCodeで開くと、Renesas拡張機能がCMakeの構成を行います。
+
+このプロジェクトのツールチェンは、「Renesas Platform: ARM LLVM Toolchain - 18.1.3」で作成しています。
+
+## プロジェクトのビルド
+
+メニューから「ターミナル」->「タスクの実行」->「Build Project」を選択します。
