@@ -8,7 +8,7 @@
       "label": "FSP Smart Configurator",
       "detail": "Edit configuration in FSP Smart Configurator",
       "targets": [
-        "open_rasc_FirstTest"
+        "open_rasc_asp3_fsp"
       ],
       "presentation": {
         "panel": "shared",

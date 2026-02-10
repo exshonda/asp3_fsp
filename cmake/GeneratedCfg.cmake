@@ -3,7 +3,7 @@
 
 set(RASC_TARGET_DEVICE R7FA6M5BH)
 set(RASC_TARGET_ARCH cortex-m33)
-set(RASC_PROJECT_NAME FirstTest)
+set(RASC_PROJECT_NAME asp3_fsp.git)
 SET(RASC_TOOLCHAIN_NAME LLVMARM)
 
 SET(RASC_CMAKE_ASM_FLAGS "-mfloat-abi=hard;--target=arm-none-eabi;-mcpu=cortex-m33;-mfpu=fpv5-sp-d16;-Wunused;-Wuninitialized;-Wall;-Wextra;-Wmissing-declarations;-Wconversion;-Wpointer-arith;-Wshadow;-Waggregate-return;-Wno-parentheses-equality;-Wfloat-equal;-fshort-enums;-fno-unroll-loops;-fmessage-length=0;-fsigned-char;-ffunction-sections;-fdata-sections;-mthumb;-mlittle-endian;-x;assembler-with-cpp;-MP")
@@ -21,7 +21,7 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU" AND CMAKE_C_COMPILER_VERSION VERSION_GREA
     list(INSERT RASC_CMAKE_CXX_FLAGS 0 "--param=min-pagesize=0;-Wno-format-truncation;-Wno-stringop-overflow")
 endif()
 
-SET(RASC_DEBUG_FLAGS "-g;-Og")
+SET(RASC_DEBUG_FLAGS "-g;-O2")
 SET(RASC_RELEASE_FLAGS "-O2")
 SET(RASC_MIN_SIZE_RELEASE_FLAGS "-Os")
 SET(RASC_RELEASE_WITH_DEBUG_INFO "-g;-O2")
