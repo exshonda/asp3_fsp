@@ -1,0 +1,5 @@
+INCLUDE	"arm_m_gcc/ra6m5_fsp/chip"
+
+#target_kernel_impl.c
+target_initialize
+target_exit
