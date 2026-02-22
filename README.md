@@ -37,7 +37,11 @@ git clone https://github.com/exshonda/asp3_fsp.git .
 
 メニューから「ターミナル」->「タスクの実行」->「Build Project」を選択します。
 
-または、左領域にある「CMake」アイコンを選択し、「プロジェクトの概要」から「すべてのプロジェクトのビルド」アイコンをクリックします。
+下記のエラーが出た場合、「ターミナル」->「タスクの実行」->「Configure Project」を選択し、再びビルドします。
+
+```text
+Components have been added to, or removed from the project. Build may fail until the project is refreshed in your IDE.
+```
 
 ![ビルド成功](images/ビルド成功.png)
 

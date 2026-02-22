@@ -1,0 +1,3 @@
+.api_xml       text eol=lf
+.secure_azone  text eol=lf
+.secure_rzone  text eol=lf
