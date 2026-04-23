@@ -1,5 +1,8 @@
 # TOPPERS/ASP3の VS code向けのRenesas拡張機能対応
 
+## ターゲット
+- [EK-RA6M5](https://www.renesas.com/ja/design-resources/boards-kits/ek-ra6m5?srsltid=AfmBOooxOIRvtPF3k4PRvCM5RuOCfogtJXSP6W-tii1L4Szs8DY4t46m)
+
 ## Renesas拡張機能のインストール
 
 左領域にある「拡張機能」アイコンを選択し、「Marketplaceで拡張機能を検索する」に「Renesas」と入力して、Renesas拡張機能をインストールします。
