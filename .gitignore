@@ -9,6 +9,7 @@ build/
 /ra_gen/
 /ra_cfg/
 /script/
+/cmake/
 /fsp_gen.lld
 /memory_regions.lld
 /ra_cfg.txt
