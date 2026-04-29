@@ -3,17 +3,6 @@
 ## ターゲット
 - [EK-RA6M5](https://www.renesas.com/ja/design-resources/boards-kits/ek-ra6m5?srsltid=AfmBOooxOIRvtPF3k4PRvCM5RuOCfogtJXSP6W-tii1L4Szs8DY4t46m)
 
-## Renesas拡張機能のインストール
-
-左領域にある「拡張機能」アイコンを選択し、「Marketplaceで拡張機能を検索する」に「Renesas」と入力して、Renesas拡張機能をインストールします。
-
-![拡張機能のインストール](images/拡張機能のインストール.png)
-
-「QUICK INSTALL」で「Renesas RA」のツールチェインなど一式をインストールします。
-このプロジェクトは「Renesas Platform: ARM LLVM Toolchain - 18.1.3」で作成しています。
-
-![ツールチェインのインストール](images/ツールチェインのインストール.png)
-
 ## コードのダウンロード
 
 ![Gitクローン](images/Gitクローン.png)
@@ -34,7 +23,11 @@ git clone https://github.com/exshonda/asp3_fsp.git .
 
 構成が終わるとツールチェンの選択項目が表示されるので、「Renesas Platform: ARM LLVM Toolchain - 18.1.3」を選択します。（このプロジェクト作成時のツールチェンです。）
 
-Smart Configuratorでコードを再生成する場合は、`ek_ra6m5/sample/configuration.xml`を開きます。
+## Smart Configuratorでコードを再生成する
+
+エクスプローラビューで`configuration.xml`を右クリックし、「Open with RA Smart Configurator」を選択します。
+
+Smart Configuratorが開いたら「Generate Project Content」ボタンをクリックしてコードを生成します。
 
 ## プロジェクトのビルド
 
