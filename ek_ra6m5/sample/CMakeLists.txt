@@ -49,7 +49,7 @@ include(${CMAKE_CURRENT_LIST_DIR}/cmake/GeneratedCfg.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/GeneratedSrc.cmake)
 
 # TOPPERS/ASP3 の FSP 用のコンパイラ定義をインクルード
-include(asp3/asp3_fsp.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/../../asp3/asp3_fsp.cmake)
 
 target_link_libraries(${CMAKE_PROJECT_NAME}.elf asp3)
 
