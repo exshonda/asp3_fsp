@@ -48,6 +48,9 @@ include(${CMAKE_CURRENT_LIST_DIR}/cmake/GeneratedCfg.cmake)
 
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/GeneratedSrc.cmake)
 
+# TOPPERS/ASP3 のターゲット依存部を指定
+set(ASP3_TARGET ek_ra6m5)
+
 # TOPPERS/ASP3 の FSP 用のコンパイラ定義をインクルード
 include(${CMAKE_CURRENT_LIST_DIR}/../../asp3/asp3_fsp.cmake)
 

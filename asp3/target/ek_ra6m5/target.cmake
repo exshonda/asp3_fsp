@@ -1,6 +1,6 @@
 
 set(ARCHDIR ${PROJECT_SOURCE_DIR}/arch/arm_m_gcc)
-set(TARGETDIR ${PROJECT_SOURCE_DIR}/target/fsp)
+set(TARGETDIR ${PROJECT_SOURCE_DIR}/target/${ASP3_TARGET})
 
 list(APPEND ASP3_CFG_FILES
     ${TARGETDIR}/target_kernel.cfg
