@@ -86,9 +86,9 @@ target_initialize(void)
     //R_BSP_PinCfg(MIKROBUS_TX_ARDUINO_TX, SERIAL_PIN_CFG);
     //R_BSP_PinAccessDisable();
 
-    status = R_SCI_UART_Open(&g_uart0_ctrl, &g_uart0_cfg);
-    //status = R_SCI_UART_BaudCalculate(SERIAL_BAUD_RATE, SERIAL_MODULATION, SERIAL_ERR_X1000, g_uart0_cfg_extend.p_baud_setting);
-    //status = R_SCI_UART_BaudSet(&g_uart0_ctrl, g_uart0_cfg_extend.p_baud_setting);
+    status = R_SCI_B_UART_Open(&g_uart0_ctrl, &g_uart0_cfg);
+    //status = R_SCI_B_UART_BaudCalculate(SERIAL_BAUD_RATE, SERIAL_MODULATION, SERIAL_ERR_X1000, g_uart0_cfg_extend.p_baud_setting);
+    //status = R_SCI_B_UART_BaudSet(&g_uart0_ctrl, g_uart0_cfg_extend.p_baud_setting);
 }
 
 /*
