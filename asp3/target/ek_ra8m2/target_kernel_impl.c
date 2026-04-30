@@ -48,7 +48,7 @@
 
 #define SERIAL_PIN_CFG                    ((uint32_t) IOPORT_CFG_DRIVE_HIGH | \
                                            (uint32_t) IOPORT_CFG_PERIPHERAL_PIN | \
-                                           (uint32_t) IOPORT_PERIPHERAL_SCI1_3_5_7_9)
+                                           (uint32_t) IOPORT_PERIPHERAL_SCI0_2_4_6_8)
 #define SERIAL_BAUD_RATE                    (115200U)
 #define SERIAL_ERR_X1000                    (4000U)
 #define SERIAL_MODULATION                   (0U)
@@ -67,8 +67,6 @@ extern void tPutLogSIOPort_initialize(void);
 void
 target_initialize(void)
 {
-    uint32_t status;
-
     /*
      * コア依存部の初期化
      */
@@ -81,14 +79,10 @@ target_initialize(void)
     tPutLogSIOPort_initialize();
 #endif /* TOPPERS_OMIT_TECS */
 
-    //R_BSP_PinAccessEnable();
-    //R_BSP_PinCfg(MIKROBUS_RX_ARDUINO_RX, SERIAL_PIN_CFG);
-    //R_BSP_PinCfg(MIKROBUS_TX_ARDUINO_TX, SERIAL_PIN_CFG);
-    //R_BSP_PinAccessDisable();
+    /* DISDEFWBUF bit[1] of ACTLR (0xE000E008): disable write buffer to convert IMPRECISERR → PRECISERR */
+    *((volatile uint32_t *)0xE000E008) |= (1UL << 1);
 
-    status = R_SCI_B_UART_Open(&g_uart0_ctrl, &g_uart0_cfg);
-    //status = R_SCI_B_UART_BaudCalculate(SERIAL_BAUD_RATE, SERIAL_MODULATION, SERIAL_ERR_X1000, g_uart0_cfg_extend.p_baud_setting);
-    //status = R_SCI_B_UART_BaudSet(&g_uart0_ctrl, g_uart0_cfg_extend.p_baud_setting);
+    (void)R_SCI_B_UART_Open(&g_uart0_ctrl, &g_uart0_cfg);
 }
 
 /*

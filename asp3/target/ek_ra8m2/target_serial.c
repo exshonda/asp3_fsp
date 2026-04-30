@@ -20,6 +20,7 @@ struct sio_port_control_block
     const uart_instance_t *handle;  /* UARTハンドル */
     bool_t rdy_snd;                 /* 送信可能コールバック */
     bool_t rdy_rcv;                 /* 受信通知コールバック */
+    uint8_t snd_byte;               /* 送信中バイト（FSP TXI ISR 用の永続バッファ） */
     uint8_t rcv_buf[256];           /* 受信バッファ */
     uint32_t rcv_wpos;              /* 受信バッファ書き込み位置 */
     uint32_t rcv_rpos;              /* 受信バッファ読み込み位置 */
@@ -29,7 +30,7 @@ struct sio_port_control_block
  *  SIOポート管理ブロックのエリア
  */
 static SIOPCB siopcb_table[TNUM_PORT] = {
-    {0, false, &g_uart0, false, false, {0}, 0, 0},
+    {0, false, &g_uart0, false, false, 0, {0}, 0, 0},
 };
 
 /*
@@ -43,12 +44,9 @@ static SIOPCB siopcb_table[TNUM_PORT] = {
  */
 void sio_initialize(intptr_t exinf)
 {
-    SIOPCB	*p_siopcb;
     for (uint_t i = 0; i < TNUM_PORT; i++)
     {
-        p_siopcb = &(siopcb_table[i]);
         siopcb_table[i].exinf = exinf;
-        ((uart_cfg_t *)siopcb_table[i].handle->p_cfg)->p_context = (void *)p_siopcb;
     }
 }
 
@@ -94,7 +92,8 @@ SIOPCB *sio_opn_por(ID siopid, intptr_t exinf)
     p_siopcb->rcv_rpos = 0;
 
     status = R_SCI_B_UART_Open(p_siopcb->handle->p_ctrl, p_siopcb->handle->p_cfg);
-    if (status != FSP_SUCCESS) {
+    /* target_initialize() が既に Open 済みの場合は ALREADY_OPEN を正常扱いにする */
+    if (status != FSP_SUCCESS && status != FSP_ERR_ALREADY_OPEN) {
         return NULL;
     }
     p_siopcb->is_opend = true;
@@ -111,20 +110,20 @@ void sio_cls_por(SIOPCB *p_siopcb)
     p_siopcb->is_opend = false;
 }
 
+
 /*
  * SIOポートへの文字送信
  */
 bool_t sio_snd_chr(SIOPCB *p_siopcb, char ch)
 {
     sci_b_uart_instance_ctrl_t * p_ctrl = (sci_b_uart_instance_ctrl_t *) p_siopcb->handle->p_ctrl;
-    bool_t result = false;
     if (p_ctrl->p_reg->CSR_b.TDRE == 0) {
-        return false; // 送信可能でない場合
+        return false;
     }
-    if (R_SCI_B_UART_Write(p_siopcb->handle->p_ctrl, (uint8_t *)&ch, 1) == FSP_SUCCESS) {
-        result = true; // 送信成功
-    }
-    return result;
+    /* FSP の R_SCI_B_UART_Write はポインタを TXI ISR まで保持するため，
+     * スタック上のローカル変数 ch のアドレスではなく永続バッファを渡す． */
+    p_siopcb->snd_byte = (uint8_t)ch;
+    return R_SCI_B_UART_Write(p_siopcb->handle->p_ctrl, &p_siopcb->snd_byte, 1) == FSP_SUCCESS;
 }
 
 /*
@@ -150,8 +149,7 @@ void sio_ena_cbr(SIOPCB *p_siopcb, uint_t cbrtn)
     switch (cbrtn) {
     case SIO_RDY_SND:
         p_siopcb->rdy_snd = true;
-        enable_int((INTNO)(p_siopcb->handle->p_cfg->txi_irq + 16));
-        //enable_int((INTNO)(p_siopcb->handle->p_cfg->tei_irq + 16));
+        /* TIE/TEIE は R_SCI_B_UART_Write が CCR0 で管理するため NVIC は触らない */
         break;
     case SIO_RDY_RCV:
         p_siopcb->rdy_rcv = true;
@@ -170,8 +168,7 @@ void sio_dis_cbr(SIOPCB *p_siopcb, uint_t cbrtn)
     switch (cbrtn) {
     case SIO_RDY_SND:
         p_siopcb->rdy_snd = false;
-        disable_int((INTNO)(p_siopcb->handle->p_cfg->txi_irq + 16));
-        //disable_int((INTNO)(p_siopcb->handle->p_cfg->tei_irq + 16));
+        /* TIE は FSP の R_SCI_B_UART_Write が CCR0 で管理するため NVIC は触らない */
         break;
     case SIO_RDY_RCV:
         p_siopcb->rdy_rcv = false;
@@ -185,17 +182,28 @@ void sio_dis_cbr(SIOPCB *p_siopcb, uint_t cbrtn)
 /*
  * SIOポートへの文字出力
  */
+static void target_fput_log_byte(sci_b_uart_instance_ctrl_t *p_ctrl, uint8_t b)
+{
+    uint32_t reg;
+    /* Keep TE=1 (set by R_SCI_B_UART_Open). Disable interrupt enables to prevent
+     * ISR interference, wait for TDR empty, write byte, then wait for transmission. */
+    reg = p_ctrl->p_reg->CCR0;
+    p_ctrl->p_reg->CCR0 &= (uint32_t) ~(R_SCI_B0_CCR0_TIE_Msk | R_SCI_B0_CCR0_TEIE_Msk);
+    do { } while (p_ctrl->p_reg->CSR_b.TDRE == 0);
+    p_ctrl->p_reg->TDR_BY = b;
+    do { } while (p_ctrl->p_reg->CSR_b.TEND == 0);
+    p_ctrl->p_reg->CCR0 = reg;
+}
+
 void target_fput_log(char c)
 {
     SIOPCB *p_siopcb = get_siopcb(FPUT_PORTID);
     sci_b_uart_instance_ctrl_t *p_ctrl = (sci_b_uart_instance_ctrl_t *)p_siopcb->handle->p_ctrl;
 
     if (c == '\n') {
-        R_SCI_B_UART_Write(p_ctrl, (uint8_t *)"\r", 1);
-        do { } while (p_ctrl->p_reg->CSR_b.TDRE == 0);
+        target_fput_log_byte(p_ctrl, '\r');
     }
-    R_SCI_B_UART_Write(p_ctrl, (uint8_t *)&c, 1);
-    do { } while (p_ctrl->p_reg->CSR_b.TDRE == 0);
+    target_fput_log_byte(p_ctrl, (uint8_t)c);
 }
 
 void target_uart_txi(SIOPCB *p_siopcb)
