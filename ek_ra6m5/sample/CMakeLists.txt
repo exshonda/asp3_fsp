@@ -44,7 +44,9 @@ include(${CMAKE_CURRENT_LIST_DIR}/Config.cmake)
 
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/GeneratedCfg.cmake)
 
-# If required user can amend RASC generated flags here, e.g. list(REMOVE_ITEM RASC_CMAKE_C_FLAGS "-Wall")
+# Override optimization level: -Os -> -O2 (if present)
+string(REPLACE "-Os" "-O2" RASC_CMAKE_C_FLAGS   "${RASC_CMAKE_C_FLAGS}")
+string(REPLACE "-Os" "-O2" RASC_CMAKE_CXX_FLAGS "${RASC_CMAKE_CXX_FLAGS}")
 
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/GeneratedSrc.cmake)
 
@@ -81,8 +83,10 @@ asp3_set_fsp_options(${CMAKE_PROJECT_NAME}.elf)
 #asp3_cfg_check(${CMAKE_PROJECT_NAME}.elf)
 
 # Execute post-build to print size, generate hex and bin
+get_filename_component(_TOOLCHAIN_BIN "${CMAKE_C_COMPILER}" DIRECTORY)
+find_program(LLVM_SIZE NAMES llvm-size HINTS "${_TOOLCHAIN_BIN}" NO_DEFAULT_PATH)
 add_custom_command(TARGET ${CMAKE_PROJECT_NAME}.elf POST_BUILD
-	COMMAND ${CMAKE_SIZE} $<TARGET_FILE:${CMAKE_PROJECT_NAME}.elf>
+	COMMAND ${LLVM_SIZE} $<TARGET_FILE:${CMAKE_PROJECT_NAME}.elf>
 	COMMAND ${CMAKE_OBJCOPY} -O ihex $<TARGET_FILE:${CMAKE_PROJECT_NAME}.elf> ${CMAKE_PROJECT_NAME}.hex
 	COMMAND ${CMAKE_OBJCOPY} -O binary $<TARGET_FILE:${CMAKE_PROJECT_NAME}.elf> ${CMAKE_PROJECT_NAME}.bin
 )
