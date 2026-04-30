@@ -1,4 +1,5 @@
 {
+  "version": "2.0.0",
   "tasks": [
     {
       "type": "cmake",
@@ -7,15 +8,15 @@
       "label": "FSP Smart Configurator",
       "detail": "Edit configuration in FSP Smart Configurator",
       "targets": [
-        "open_rasc_sample"
+        "open_rasc_asp3_fsp"
       ],
       "presentation": {
-        "clear": false,
-        "showReuseMessage": false,
-        "reveal": "silent",
-        "focus": false,
+        "panel": "shared",
         "echo": false,
-        "panel": "shared"
+        "focus": false,
+        "reveal": "silent",
+        "showReuseMessage": false,
+        "clear": false
       }
     },
     {
@@ -39,6 +40,5 @@
         "Configure Project"
       ]
     }
-  ],
-  "version": "2.0.0"
+  ]
 }
