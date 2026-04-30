@@ -293,18 +293,18 @@
       <configSetting altId="sci0.rxd0.p602" configurationId="sci0.rxd0" peripheral="SCI0"/>
       <configSetting altId="sci0.sck0.p601" configurationId="sci0.sck0" peripheral="SCI0"/>
       <configSetting altId="sci0.txd0.p603" configurationId="sci0.txd0" peripheral="SCI0"/>
-      <configSetting altId="sci2.cts2.pa06" configurationId="sci2.cts2" isUsedByDriver="true" peripheral="SCI2"/>
-      <configSetting altId="sci2.cts_rts2.pa05" configurationId="sci2.cts_rts2" isUsedByDriver="true" peripheral="SCI2"/>
-      <configSetting altId="sci2.rxd2.pa02" configurationId="sci2.rxd2" isUsedByDriver="true" peripheral="SCI2"/>
+      <configSetting altId="sci2.cts2.pa06" configurationId="sci2.cts2" peripheral="SCI2"/>
+      <configSetting altId="sci2.cts_rts2.pa05" configurationId="sci2.cts_rts2" peripheral="SCI2"/>
+      <configSetting altId="sci2.rxd2.pa02" configurationId="sci2.rxd2" peripheral="SCI2"/>
       <configSetting altId="sci2.sck2.pa04" configurationId="sci2.sck2" peripheral="SCI2"/>
-      <configSetting altId="sci2.txd2.pa03" configurationId="sci2.txd2" isUsedByDriver="true" peripheral="SCI2"/>
+      <configSetting altId="sci2.txd2.pa03" configurationId="sci2.txd2" peripheral="SCI2"/>
       <configSetting altId="sci5.de5.pa10" configurationId="sci5.de5" peripheral="SCI5"/>
       <configSetting altId="sci5.rxd5.pa08" configurationId="sci5.rxd5" peripheral="SCI5"/>
       <configSetting altId="sci5.txd5.pa09" configurationId="sci5.txd5" peripheral="SCI5"/>
-      <configSetting altId="sci8.cts8.pd05" configurationId="sci8.cts8" peripheral="SCI8"/>
-      <configSetting altId="sci8.cts_rts8.pd04" configurationId="sci8.cts_rts8" peripheral="SCI8"/>
-      <configSetting altId="sci8.rxd8.pd03" configurationId="sci8.rxd8" peripheral="SCI8"/>
-      <configSetting altId="sci8.txd8.pd02" configurationId="sci8.txd8" peripheral="SCI8"/>
+      <configSetting altId="sci8.cts8.pd05" configurationId="sci8.cts8" isUsedByDriver="true" peripheral="SCI8"/>
+      <configSetting altId="sci8.cts_rts8.pd04" configurationId="sci8.cts_rts8" isUsedByDriver="true" peripheral="SCI8"/>
+      <configSetting altId="sci8.rxd8.pd03" configurationId="sci8.rxd8" isUsedByDriver="true" peripheral="SCI8"/>
+      <configSetting altId="sci8.txd8.pd02" configurationId="sci8.txd8" isUsedByDriver="true" peripheral="SCI8"/>
       <configSetting altId="usbfs.usb_dm.p815" configurationId="usbfs.usb_dm" peripheral="USB FS"/>
       <configSetting altId="usbfs.usb_dp.p814" configurationId="usbfs.usb_dp" peripheral="USB FS"/>
       <configSetting altId="usbfs.usb_vbus.p407" configurationId="usbfs.usb_vbus" peripheral="USB FS"/>

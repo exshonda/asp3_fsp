@@ -461,7 +461,7 @@
     </module>
     <module id="module.driver.uart_on_sci_b_uart.284095561">
       <property id="module.driver.uart.name" value="g_uart0"/>
-      <property id="module.driver.uart.channel" value="2"/>
+      <property id="module.driver.uart.channel" value="8"/>
       <property id="module.driver.uart.data_bits" value="module.driver.uart.data_bits.data_bits_8"/>
       <property id="module.driver.uart.parity" value="module.driver.uart.parity.parity_off"/>
       <property id="module.driver.uart.stop_bits" value="module.driver.uart.stop_bits.stop_bits_1"/>
@@ -491,8 +491,8 @@
       <property id="module.driver.timer.channel" value="0"/>
       <property id="module.driver.timer.mode" value="module.driver.timer.mode.mode_periodic"/>
       <property id="module.driver.timer.period" value="0x100000000"/>
-      <property id="module.driver.timer.compare_match.a.status" value="module.driver.timer.compare_match.a.status.disabled"/>
-      <property id="module.driver.timer.compare_match.a.value" value="0x10000"/>
+      <property id="module.driver.timer.compare_match.a.status" value="module.driver.timer.compare_match.a.status.enabled"/>
+      <property id="module.driver.timer.compare_match.a.value" value="0x100000000"/>
       <property id="module.driver.timer.compare_match.b.status" value="module.driver.timer.compare_match.b.status.disabled"/>
       <property id="module.driver.timer.compare_match.b.value" value="0x10000"/>
       <property id="module.driver.timer.compare_match.c.status" value="module.driver.timer.compare_match.c.status.disabled"/>

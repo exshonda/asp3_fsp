@@ -1,4 +1,4 @@
-# Please see README.md for build instructions
+﻿# Please see README.md for build instructions
 
 cmake_minimum_required(VERSION 3.16.4)
 
@@ -51,29 +51,31 @@ include(${CMAKE_CURRENT_LIST_DIR}/Config.cmake)
 
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/GeneratedCfg.cmake)
 
-# If required user can amend RASC generated flags here, e.g. list(REMOVE_ITEM RASC_CMAKE_C_FLAGS "-Wall")
+# Override optimization level: -Os -> -O2
+string(REPLACE "-Os" "-O2" RASC_CMAKE_C_FLAGS   "${RASC_CMAKE_C_FLAGS}")
+string(REPLACE "-Os" "-O2" RASC_CMAKE_CXX_FLAGS "${RASC_CMAKE_CXX_FLAGS}")
 
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/GeneratedSrc.cmake)
 
-# TOPPERS/ASP3 のターゲット依存部を指定
+# TOPPERS/ASP3 縺ｮ繧ｿ繝ｼ繧ｲ繝・ヨ萓晏ｭ倬Κ繧呈欠螳・
 set(ASP3_TARGET ek_ra8m2)
 
-# TOPPERS/ASP3 の FSP 用のコンパイラ定義をインクルード
+# TOPPERS/ASP3 縺ｮ FSP 逕ｨ縺ｮ繧ｳ繝ｳ繝代う繝ｩ螳夂ｾｩ繧偵う繝ｳ繧ｯ繝ｫ繝ｼ繝・
 include(${CMAKE_CURRENT_LIST_DIR}/../../asp3/asp3_fsp.cmake)
 
 target_link_libraries(${CMAKE_PROJECT_NAME}.elf asp3)
 
-# TOPPERS/ASP3 のカーネルオブジェクト定義のcfgファイルを設定
+# TOPPERS/ASP3 縺ｮ繧ｫ繝ｼ繝阪Ν繧ｪ繝悶ず繧ｧ繧ｯ繝亥ｮ夂ｾｩ縺ｮcfg繝輔ぃ繧､繝ｫ繧定ｨｭ螳・
 set(ASP3_APP_CFG_FILE ${ASP3_ROOT_DIR}/sample/sample1.cfg)
 
 list(APPEND ASP3_INCLUDE_DIRS
     ${ASP3_ROOT_DIR}/sample
 )
 
-# TOPPERS/ASP3 のライブラリを追加
+# TOPPERS/ASP3 縺ｮ繝ｩ繧､繝悶Λ繝ｪ繧定ｿｽ蜉
 add_subdirectory(${ASP3_ROOT_DIR} asp3)
 
-# TOPPERS/ASP3 付属のソースファイルを追加
+# TOPPERS/ASP3 莉伜ｱ槭・繧ｽ繝ｼ繧ｹ繝輔ぃ繧､繝ｫ繧定ｿｽ蜉
 include(${ASP3_ROOT_DIR}/library/library.cmake)
 include(${ASP3_ROOT_DIR}/syssvc/syssvc.cmake)
 
@@ -81,15 +83,17 @@ target_sources(${CMAKE_PROJECT_NAME}.elf PRIVATE
     ${ASP3_ROOT_DIR}/sample/sample1.c
 )
 
-# TOPPERS/ASP3 を使うための FSP の設定
+# TOPPERS/ASP3 繧剃ｽｿ縺・◆繧√・ FSP 縺ｮ險ｭ螳・
 asp3_set_fsp_options(${CMAKE_PROJECT_NAME}.elf)
 
-# TOPPERS/ASP3 のチェックを行う（シンボルがGCされるとエラーになるので省略）
+# TOPPERS/ASP3 縺ｮ繝√ぉ繝・け繧定｡後≧・医す繝ｳ繝懊Ν縺隈C縺輔ｌ繧九→繧ｨ繝ｩ繝ｼ縺ｫ縺ｪ繧九・縺ｧ逵∫払・・
 #asp3_cfg_check(${CMAKE_PROJECT_NAME}.elf)
 
 # Execute post-build to print size, generate hex and bin
+get_filename_component(_TOOLCHAIN_BIN "${CMAKE_C_COMPILER}" DIRECTORY)
+find_program(LLVM_SIZE NAMES llvm-size HINTS "${_TOOLCHAIN_BIN}" NO_DEFAULT_PATH)
 add_custom_command(TARGET ${CMAKE_PROJECT_NAME}.elf POST_BUILD
-	COMMAND ${CMAKE_SIZE} $<TARGET_FILE:${CMAKE_PROJECT_NAME}.elf>
+	COMMAND ${LLVM_SIZE} $<TARGET_FILE:${CMAKE_PROJECT_NAME}.elf>
 	COMMAND ${CMAKE_OBJCOPY} -O ihex $<TARGET_FILE:${CMAKE_PROJECT_NAME}.elf> ${CMAKE_PROJECT_NAME}.hex
 	COMMAND ${CMAKE_OBJCOPY} -O binary $<TARGET_FILE:${CMAKE_PROJECT_NAME}.elf> ${CMAKE_PROJECT_NAME}.bin
 )
