@@ -43,12 +43,9 @@ static SIOPCB siopcb_table[TNUM_PORT] = {
  */
 void sio_initialize(intptr_t exinf)
 {
-    SIOPCB	*p_siopcb;
     for (uint_t i = 0; i < TNUM_PORT; i++)
     {
-        p_siopcb = &(siopcb_table[i]);
         siopcb_table[i].exinf = exinf;
-        ((uart_cfg_t *)siopcb_table[i].handle->p_cfg)->p_context = (void *)p_siopcb;
     }
 }
 
