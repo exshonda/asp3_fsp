@@ -69,14 +69,13 @@ static const char banner[] = "\n"
 "            Graduate School of Information Science, Nagoya Univ., JAPAN\n"
 "%s";
 
-static const char prc_banner[] = "Processor %d start.";
-
 /*
  *  カーネル起動メッセージの出力
  */
 void
 print_banner_copyright(EXINF exinf)
 {
+	(void)exinf;
 	syslog_5(LOG_NOTICE, banner,
 				(TKERNEL_PRVER >> 12) & 0x0fU,
 				(TKERNEL_PRVER >> 4) & 0xffU,

@@ -157,6 +157,7 @@ gen_ercd_wait(ER rercd, SPCB *p_spcb)
 void
 serial_initialize(EXINF exinf)
 {
+	(void)exinf;
 	uint_t	i;
 	SPCB	*p_spcb;
 

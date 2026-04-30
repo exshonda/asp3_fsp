@@ -205,6 +205,7 @@ logtask_flush(uint_t count)
 void
 logtask_main(EXINF exinf)
 {
+	(void)exinf;
 	SYSLOG	syslog;
 	ER_UINT	rercd;
 
@@ -229,6 +230,7 @@ logtask_main(EXINF exinf)
 void
 logtask_terminate(EXINF exinf)
 {
+	(void)exinf;
 	char	c;
 	SYSLOG	syslog;
 	bool_t	msgflg = false;

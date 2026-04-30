@@ -123,8 +123,8 @@ set_exc_int_priority(uint32_t excno, uint32_t iipm){
 	}
 	
 	tmp = sil_rew_mem((void *)reg);
-	tmp &= ~(0xFF << (8 * (excno & 0x03)));
-	tmp |= iipm << (8 * (excno & 0x03));
+	tmp &= ~(0xFFU << (8U * (excno & 0x03U)));
+	tmp |= iipm << (8U * (excno & 0x03U));
 	sil_wrw_mem((void *)reg, tmp);
 }
 
@@ -173,22 +173,22 @@ disable_exc(EXCNO excno)
 	switch (excno) {
 	  case EXCNO_MPU:
 		tmp = sil_rew_mem((void *)NVIC_SYS_HND_CTRL);
-		tmp &= ~NVIC_SYS_HND_CTRL_MEM;
+		tmp &= ~(uint32_t)NVIC_SYS_HND_CTRL_MEM;
 		sil_wrw_mem((void *)NVIC_SYS_HND_CTRL, tmp);
 		break;
 	  case EXCNO_BUS:
 		tmp = sil_rew_mem((void *)NVIC_SYS_HND_CTRL);
-		tmp &= ~NVIC_SYS_HND_CTRL_BUS;
+		tmp &= ~(uint32_t)NVIC_SYS_HND_CTRL_BUS;
 		sil_wrw_mem((void *)NVIC_SYS_HND_CTRL, tmp);
 		break;
 	  case EXCNO_USAGE:
 		tmp = sil_rew_mem((void *)NVIC_SYS_HND_CTRL);
-		tmp &= ~NVIC_SYS_HND_CTRL_USAGE;
+		tmp &= ~(uint32_t)NVIC_SYS_HND_CTRL_USAGE;
 		sil_wrw_mem((void *)NVIC_SYS_HND_CTRL, tmp);
 		break;
 	  case EXCNO_SECURE:
 		tmp = sil_rew_mem((void *)NVIC_SYS_HND_CTRL);
-		tmp &= ~NVIC_SYS_HND_CTRL_SECURE;
+		tmp &= ~(uint32_t)NVIC_SYS_HND_CTRL_SECURE;
 		sil_wrw_mem((void *)NVIC_SYS_HND_CTRL, tmp);
 		break;
 	}
@@ -227,7 +227,7 @@ core_initialize(void)
 	set_exc_int_priority(EXCNO_USAGE, 0);
 	set_exc_int_priority(EXCNO_SVCALL, 0);
 	set_exc_int_priority(EXCNO_DEBUG, 0);
-	set_exc_int_priority(EXCNO_PENDSV, INT_IPM(-1));
+	set_exc_int_priority(EXCNO_PENDSV, (uint32_t)INT_IPM(-1));
 #ifdef TOPPERS_ENABLE_TRUSTZONE
 	set_exc_int_priority(EXCNO_SECURE, 0);
 #endif /* TOPPERS_ENABLE_TRUSTZONE */
@@ -246,7 +246,7 @@ core_initialize(void)
 	 *  Configuration Control RegisterのSTKALIGNビットを0にする
 	 *  スタックは8byteアラインでなく、4byteアライン
 	 */
-	sil_andw((void *)CCR_BASE, ~CCR_STKALIGN);
+	sil_andw((void *)CCR_BASE, ~(uint32_t)CCR_STKALIGN);
 
 #ifdef TOPPERS_FPU_ENABLE
 	sil_orw((uint32_t *)FPU_CPACR, CPACR_FPU_ENABLE);
@@ -256,7 +256,7 @@ core_initialize(void)
 	/*
 	 * スタックの境界値をタスクコンテキストにキャッシュ
 	 */
-	for (int i = 0; i < tnum_tsk; ++i) {
+	for (uint_t i = 0; i < tnum_tsk; ++i) {
 		tcb_table[i].tskctxb.stk_top = tinib_table[i].tskinictxb.stk_top;
 	}
 #else
@@ -302,7 +302,7 @@ config_int(INTNO intno, ATR intatr, PRI intpri)
 	 *  割込み優先度をセット
 	 */
 #if __TARGET_ARCH_THUMB >= 4
-	set_exc_int_priority(intno, INT_IPM(intpri));
+	set_exc_int_priority(intno, (uint32_t)INT_IPM(intpri));
 #else
 	set_exc_int_priority(intno, INT_NVIC_PRI(intpri));
 #endif /* __TARGET_ARCH_THUMB >= 4 */

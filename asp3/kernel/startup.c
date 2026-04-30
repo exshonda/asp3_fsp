@@ -108,11 +108,14 @@ sta_ker(void)
 
 	/*
 	 *  初期化ルーチンの実行
-	 */ 
+	 */
+#if 1
 	for (i = 0; i < tnum_inirtn; i++) {
 		(*(inirtnb_table[i].inirtn))(inirtnb_table[i].exinf);
 	}
-
+#endif
+//    (*(inirtnb_table[0].inirtn))(inirtnb_table[0].exinf);
+//    (*(inirtnb_table[1].inirtn))(inirtnb_table[0].exinf);
 	/*
 	 *  高分解能タイマの設定
 	 */

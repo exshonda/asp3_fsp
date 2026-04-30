@@ -208,7 +208,7 @@ mutex_calc_priority(TCB *p_tcb)
 		}
 		p_mtxcb = p_mtxcb->p_prevmtx;
 	}
-	p_tcb->boosted = boosted;
+	p_tcb->boosted = (uint_t)boosted;
 	return(priority);
 }
 
@@ -313,7 +313,7 @@ mutex_release(MTXCB *p_mtxcb)
 		p_tcb->p_lastmtx = p_mtxcb;
 		if (MTX_CEILING(p_mtxcb)) {
 			if (p_mtxcb->p_mtxinib->ceilpri < p_tcb->priority) {
-				p_tcb->priority = p_mtxcb->p_mtxinib->ceilpri;
+				p_tcb->priority = (uint8_t)p_mtxcb->p_mtxinib->ceilpri;
 			}
 			p_tcb->boosted = true;
 		}

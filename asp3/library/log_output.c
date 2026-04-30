@@ -113,7 +113,7 @@ syslog_printf(const char *format, const LOGPAR args[], void (*putc)(char))
 			c = *format++;
 		}
 		while ('0' <= c && c <= '9') {
-			width = width * 10U + c - '0';
+			width = width * 10U + (uint_t)(c - '0');
 			c = *format++;
 		}
 		if (c == 'l' || c == 't' || c == 'T') {

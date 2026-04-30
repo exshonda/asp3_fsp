@@ -238,7 +238,7 @@ lock_cpu(void)
 	 *  ある．
 	 */
 	iipm = get_basepri();
-	set_basepri_max(IIPM_LOCK);
+	set_basepri_max((uint32_t)IIPM_LOCK);
 	saved_iipm = iipm;
 	lock_flag = true;
 	/* 
@@ -290,7 +290,7 @@ lock_cpu_dsp(void)
 	 * ・割込み優先度マスクの保存値をIIPM_ENAALL
 	 * を必ず実行する
 	 */
-	set_basepri(IIPM_LOCK);
+	set_basepri((uint32_t)IIPM_LOCK);
 	saved_iipm = IIPM_ENAALL;
 	lock_flag = true;
 	/* 
@@ -358,7 +358,7 @@ t_set_ipm(PRI intpri)
 	if (intpri == TIPM_ENAALL) {
 		saved_iipm = IIPM_ENAALL;
 	} else {
-		const uint32_t iipm = INT_IPM(intpri);
+		const uint32_t iipm = (uint32_t)INT_IPM(intpri);
 		saved_iipm = iipm;
 		set_basepri_max(iipm);
 	}
@@ -395,7 +395,7 @@ extern const uint32_t	bitpat_cfgint[];
 Inline bool_t
 check_intno_cfg(INTNO intno)
 {
-	if ((bitpat_cfgint[intno >> 5] & (1 << (intno & 0x1f))) == 0x00) {
+	if ((bitpat_cfgint[intno >> 5] & (1U << (intno & 0x1f))) == 0x00U) {
 		return(false);
 	}
 	return(true);
@@ -412,12 +412,12 @@ disable_int(INTNO intno)
 
 	if (intno == IRQNO_SYSTICK) {
 		tmp = sil_rew_mem((void *)SYSTIC_CONTROL_STATUS);
-		tmp &= ~SYSTIC_TICINT;
+		tmp &= ~(uint32_t)SYSTIC_TICINT;
 		sil_wrw_mem((void *)SYSTIC_CONTROL_STATUS, tmp);
 	}else {
 		tmp = intno - 16;
 		sil_wrw_mem((void *)((uint32_t *)NVIC_CLRENA0 + (tmp >> 5)),
-					(1 << (tmp & 0x1f)));
+					(1U << (tmp & 0x1f)));
 	}
 }
 
@@ -437,7 +437,7 @@ enable_int(INTNO intno)
 	}else {
 		tmp = intno - 16;
 		sil_wrw_mem((void *)((uint32_t *)NVIC_SETENA0 + (tmp >> 5)),
-					(1 << (tmp & 0x1f)));
+					(1U << (tmp & 0x1f)));
 	}
 }
 
@@ -453,6 +453,7 @@ enable_int(INTNO intno)
 Inline bool_t
 check_intno_clear(INTNO intno)
 {
+	(void)intno;
 	return(true);
 }
 
@@ -466,12 +467,12 @@ clear_int(INTNO intno)
 
 	if (intno == IRQNO_SYSTICK) {
 		tmp = sil_rew_mem((void*)NVIC_ICSR);
-		tmp &= ~NVIC_PENDSTSET;
+		tmp &= ~(uint32_t)NVIC_PENDSTSET;
 		sil_wrw_mem((void*)NVIC_ICSR, tmp);
 	} else {
 		tmp = intno - 16;
 		sil_wrw_mem((void *)((uint32_t *)NVIC_ICPR0 + (tmp >> 5)),
-					(1 << (tmp & 0x1f)));
+					(1U << (tmp & 0x1f)));
 	}
 }
 
@@ -481,6 +482,7 @@ clear_int(INTNO intno)
 Inline bool_t
 check_intno_raise(INTNO intno)
 {
+	(void)intno;
 	return(true);
 }
 
@@ -499,7 +501,7 @@ raise_int(INTNO intno)
 	} else {
 		tmp = intno - 16;
 		sil_wrw_mem((void *)((uint32_t *)NVIC_ISPR0 + (tmp >> 5)),
-					(1 << (tmp & 0x1f)));
+					(1U << (tmp & 0x1f)));
 	}
 }
 
@@ -515,7 +517,7 @@ probe_int(INTNO intno)
 		return ((sil_rew_mem((void *)NVIC_ICSR) & NVIC_PENDSTSET) != 0);
 	} else {
 		tmp = intno - 16;
-		return ((sil_rew_mem((void *)((uint32_t *)NVIC_ISPR0 + (tmp >> 5))) & (1 << (tmp & 0x1f))) != 0);
+		return ((sil_rew_mem((void *)((uint32_t *)NVIC_ISPR0 + (tmp >> 5))) & (1U << (tmp & 0x1f))) != 0);
 	}
 }
 
@@ -653,7 +655,7 @@ extern void start_r(void);
 Inline void
 define_inh(INHNO inhno, FP int_entry)
 {
-
+	(void)inhno; (void)int_entry;
 }
 
 /*
@@ -674,6 +676,7 @@ extern void config_int(INTNO intno, ATR intatr, PRI intpri);
 Inline void
 i_begin_int(INTNO intno)
 {
+	(void)intno;
 }
 
 /*
@@ -682,6 +685,7 @@ i_begin_int(INTNO intno)
 Inline void
 i_end_int(INTNO intno)
 {
+	(void)intno;
 }
 
 /*
@@ -709,6 +713,7 @@ extern void disable_exc(EXCNO excno);
 Inline void
 define_exc(EXCNO excno, FP exc_entry)
 {
+	(void)exc_entry;
 	/*
 	 *  一部の例外は許可を行う必要がある
 	 */

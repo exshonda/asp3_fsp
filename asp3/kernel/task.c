@@ -288,8 +288,8 @@ void
 make_dormant(TCB *p_tcb)
 {
 	p_tcb->tstat = TS_DORMANT;
-	p_tcb->bpriority = p_tcb->p_tinib->ipriority;
-	p_tcb->priority = p_tcb->p_tinib->ipriority;
+	p_tcb->bpriority = (uint8_t)p_tcb->p_tinib->ipriority;
+	p_tcb->priority = (uint8_t)p_tcb->p_tinib->ipriority;
 	p_tcb->wupque = false;
 	p_tcb->raster = false;
 	p_tcb->enater = true;
@@ -337,7 +337,7 @@ change_priority(TCB *p_tcb, uint_t newpri, bool_t mtxmode)
 	uint_t	oldpri;
 
 	oldpri = p_tcb->priority;
-	p_tcb->priority = newpri;
+	p_tcb->priority = (uint8_t)newpri;
 
 	if (TSTAT_RUNNABLE(p_tcb->tstat)) {
 		/*
