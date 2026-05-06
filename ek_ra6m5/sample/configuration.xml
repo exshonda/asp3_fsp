@@ -200,9 +200,9 @@
     <node id="board.clock.cecclk.display" option="board.clock.cecclk.display.value"/>
   </raClockConfiguration>
   <raComponentSelection>
-    <component apiversion="" class="Projects" condition="" group="all" subgroup="common" variant="" vendor="Renesas" version="6.4.0">
+    <component apiversion="" class="Projects" condition="" group="all" subgroup="common" variant="" vendor="Renesas" version="6.2.0">
       <description>Common source for all template projects.</description>
-      <originalPack>Renesas.RA_common.6.4.0.pack</originalPack>
+      <originalPack>Renesas.RA_common.6.2.0.pack</originalPack>
     </component>
     <component apiversion="" class="BSP" condition="" group="Board" subgroup="ra6m5_ek" variant="" vendor="Renesas" version="6.2.0">
       <description>RA6M5-EK Board Support Files</description>

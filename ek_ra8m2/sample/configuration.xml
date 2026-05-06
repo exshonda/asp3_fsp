@@ -398,9 +398,9 @@
     <node id="board.clock.ethphyclk.display" option="board.clock.ethphyclk.display.value"/>
   </raClockConfiguration>
   <raComponentSelection>
-    <component apiversion="" class="Projects" condition="" group="all" subgroup="common" variant="" vendor="Renesas" version="6.4.0">
+    <component apiversion="" class="Projects" condition="" group="all" subgroup="common" variant="" vendor="Renesas" version="6.2.0">
       <description>Common source for all template projects.</description>
-      <originalPack>Renesas.RA_common.6.4.0.pack</originalPack>
+      <originalPack>Renesas.RA_common.6.2.0.pack</originalPack>
     </component>
     <component apiversion="" class="BSP" condition="" group="Board" subgroup="ra8m2_ek" variant="" vendor="Renesas" version="6.2.0">
       <description>RA8M2-EK Board Support Files</description>
