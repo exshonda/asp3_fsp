@@ -4,6 +4,9 @@ cmake_minimum_required(VERSION 3.16.4)
 
 set(CMAKE_SYSTEM_NAME Generic)
 
+# クロスコンパイラの動作確認テストでリンクを行わない（ARM向けclangはホスト用CRTを持たないため）
+set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+
 set(CMAKE_CONFIGURATION_TYPES Debug Release RelWithDebInfo MinSizeRel)
 
 if(BUILD_KIT)
@@ -47,6 +50,27 @@ include(${CMAKE_CURRENT_LIST_DIR}/cmake/GeneratedCfg.cmake)
 # Override optimization level: -Os -> -O2 (if present)
 string(REPLACE "-Os" "-O2" RASC_CMAKE_C_FLAGS   "${RASC_CMAKE_C_FLAGS}")
 string(REPLACE "-Os" "-O2" RASC_CMAKE_CXX_FLAGS "${RASC_CMAKE_CXX_FLAGS}")
+
+# RASCで生成されるra/・ra_gen/が無いとGeneratedSrc.cmakeのGLOBが空になり
+# 1回目のビルドでソース不足によるリンクエラーが発生するため、
+# configure時にRASCを実行してコンテンツを先に生成しておく
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/ra" OR NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/ra_gen")
+    message(STATUS "Generating FSP content using RASC (initial configure)...")
+    execute_process(
+        COMMAND ${RASC_EXE_PATH} -nosplash --launcher.suppressErrors --generate
+                --devicefamily ra --compiler LLVMARM
+                --toolchainversion ${CMAKE_C_COMPILER_VERSION}
+                ${CMAKE_CURRENT_SOURCE_DIR}/configuration.xml
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        RESULT_VARIABLE _rasc_result
+    )
+    if(NOT _rasc_result EQUAL 0)
+        message(FATAL_ERROR "RASC content generation failed (exit ${_rasc_result}). Check RASC_EXE_PATH=${RASC_EXE_PATH}")
+    endif()
+    # ビルド時のpre-buildカスタムコマンドが直後に再実行されないようstampを作成
+    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+    file(TOUCH ${CMAKE_CURRENT_BINARY_DIR}/configuration.xml.stamp)
+endif()
 
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/GeneratedSrc.cmake)
 
