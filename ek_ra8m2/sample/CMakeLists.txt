@@ -57,6 +57,9 @@ string(REPLACE "-Os" "-O2" RASC_CMAKE_CXX_FLAGS "${RASC_CMAKE_CXX_FLAGS}")
 
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/GeneratedSrc.cmake)
 
+# TOPPERS/ASP3 のメインプロジェクト名を渡す
+set(ASP3_MAIN_PROJECT_NAME ${CMAKE_PROJECT_NAME})
+
 # TOPPERS/ASP3 のターゲット依存部を指定
 # 変更点(1): 別ボードに移植する場合は asp3/target/ 以下のディレクトリ名に合わせる
 #   例) EK-RA6M5 の場合: set(ASP3_TARGET ek_ra6m5)

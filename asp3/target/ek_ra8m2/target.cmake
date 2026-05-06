@@ -41,3 +41,8 @@ list(APPEND ASP3_TARGET_C_FILES
 )
 
 include(${ARCHDIR}/ra8m2_fsp/arch.cmake)
+
+# メインプロジェクトのコンテンツ生成に依存
+if(DEFINED ASP3_MAIN_PROJECT_NAME)
+    add_dependencies(${CFG1_OUT} generate_content_${ASP3_MAIN_PROJECT_NAME})
+endif()

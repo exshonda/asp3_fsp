@@ -19,6 +19,23 @@ list(APPEND ASP3_COMPILE_DEFS
     TOPPERS_OMIT_TECS
 )
 
+# Pythonスクリプトのパス
+set(CFG_PY ${ASP3_ROOT_DIR}/cfg/cfg.py)
+
+# 生成されるCコードの出力先
+set(CFG1_OUT_DIR ${CMAKE_BINARY_DIR}/generated)
+set(CFG1_OUT_FILE ${CFG1_OUT_DIR}/cfg1_out.c)
+set(CFG1_OUT cfg1_out)
+set(KERNEL_CFG_DIR ${CMAKE_BINARY_DIR}/generated)
+set(OFFSET_H_FILE ${KERNEL_CFG_DIR}/offset.h)
+set(CFG1_OUT_SYMS_FILE ${KERNEL_CFG_DIR}/cfg1_out.syms)
+set(CFG1_OUT_SREC_FILE ${KERNEL_CFG_DIR}/cfg1_out.srec)
+set(CFG1_OUT_DB_FILE ${KERNEL_CFG_DIR}/cfg1_out.db)
+set(CFG2_OUT_DB_FILE ${KERNEL_CFG_DIR}/cfg2_out.db)
+
+# 実行ファイルの作成
+add_executable(${CFG1_OUT} ${CFG1_OUT_FILE})
+
 # ターゲット依存部の情報を読み込み
 include(${ASP3_ROOT_DIR}/target/${ASP3_TARGET}/target.cmake)
 
@@ -67,20 +84,6 @@ endforeach()
 # cfg.py が kernel/genoffset.py を検索できるようにASP3ルートを追加
 list(APPEND CFG_INCLUDE_DIRS "-I${ASP3_ROOT_DIR}")
 
-# Pythonスクリプトのパス
-set(CFG_PY ${ASP3_ROOT_DIR}/cfg/cfg.py)
-
-# 生成されるCコードの出力先
-set(CFG1_OUT_DIR ${CMAKE_BINARY_DIR}/generated)
-set(CFG1_OUT_FILE ${CFG1_OUT_DIR}/cfg1_out.c)
-set(CFG1_OUT cfg1_out)
-set(KERNEL_CFG_DIR ${CMAKE_BINARY_DIR}/generated)
-set(OFFSET_H_FILE ${KERNEL_CFG_DIR}/offset.h)
-set(CFG1_OUT_SYMS_FILE ${KERNEL_CFG_DIR}/cfg1_out.syms)
-set(CFG1_OUT_SREC_FILE ${KERNEL_CFG_DIR}/cfg1_out.srec)
-set(CFG1_OUT_DB_FILE ${KERNEL_CFG_DIR}/cfg1_out.db)
-set(CFG2_OUT_DB_FILE ${KERNEL_CFG_DIR}/cfg2_out.db)
-
 list(APPEND ASP3_CFG_GEN_H_FILES
     kernel_cfg.h
 )
@@ -119,9 +122,6 @@ add_custom_command(
     DEPENDS ${CFG_PY} ${ASP3_SYMVAL_TABLES} ${CFG_API_TABLE} ${ASP3_CFG_FILES}
     COMMENT "Running cfg pass 1 to generate cfg1_out.c"
 )
-
-# 実行ファイルの作成
-add_executable(${CFG1_OUT} ${CFG1_OUT_FILE})
 
 foreach(LANG IN ITEMS C CXX ASM)
     set(CMAKE_${LANG}_FLAGS_INIT "${ASP3_COMMON_LANG_FLAGS}")
