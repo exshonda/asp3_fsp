@@ -64,9 +64,9 @@
  *
  * サスペンド時にOpenOCDデバッグツールが使えなくなる問題の対応
  * WFI等でサスペンドしているプログラムに対して，フラッシュROM
- * 書き込みも出来なくなるため，IDEL処理変更．
+ * 書き込みも出来なくなるため，IDLE処理変更．
  */
-#define TOPPERS_CUSTOM_IDEL
+#define TOPPERS_CUSTOM_IDLE
 #define toppers_asm_custom_idle		\
 	msr		basepri, r0;			\
 	msr		basepri, r1;
