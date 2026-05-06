@@ -7,11 +7,11 @@ list(APPEND ASP3_CFG_FILES
 )
 
 list(APPEND ASP3_KERNEL_CFG_TRB_FILES
-    ${TARGETDIR}/target_kernel.trb
+    ${TARGETDIR}/target_kernel.py
 )
 
 list(APPEND ASP3_CHECK_TRB_FILES
-    ${TARGETDIR}/target_check.trb
+    ${TARGETDIR}/target_check.py
 )
 
 list(APPEND ASP3_INCLUDE_DIRS

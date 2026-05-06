@@ -3,6 +3,7 @@ compile_commands.json
 .settings/
 .cache/
 build/
+__pycache__/
 
 ek_*/*/compile_commands.json
 ek_*/*/.settings/
