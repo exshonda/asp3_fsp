@@ -32,9 +32,9 @@ TOPPERS/ASP3 RTOS 上で動く `sample1` タスクが UART にバナーとメッ
 
 | 項目 | バージョン |
 |------|-----------|
-| Renesas FSP | 6.4.0（EK-RA6M5 / EK-RA8M2 共通） |
+| Renesas FSP | 6.2.0（EK-RA6M5 / EK-RA8M2 共通） |
 | ARM LLVM Toolchain | 18.1.3 |
-| Renesas RA Smart Configurator (RASC) | FSP 6.4.0 同梱版 |
+| Renesas RA Smart Configurator (RASC) | FSP 6.2.0 同梱版 |
 
 ![ツールチェインのインストール](ek_ra6m5/sample/images/ツールチェインのインストール.png)
 
