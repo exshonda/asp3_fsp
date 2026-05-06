@@ -23,7 +23,7 @@ ek_*/*/build/
 /ek_*/*/ra_gen/
 /ek_*/*/ra_cfg/
 /ek_*/*/script/
-/ek_*/*/cmake/
+#/ek_*/*/cmake/
 /ek_*/*/fsp_gen.lld
 /ek_*/*/memory_regions.lld
 /ek_*/*/ra_cfg.txt
