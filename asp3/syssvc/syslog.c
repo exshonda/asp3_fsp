@@ -103,6 +103,7 @@ static uint_t	syslog_lowmask_not;		/* 低レベル出力すべき重要度（反
 void
 syslog_initialize(EXINF exinf)
 {
+	(void)exinf;
 	syslog_count = 0U;
 	syslog_head = 0U;
 	syslog_tail = 0U;

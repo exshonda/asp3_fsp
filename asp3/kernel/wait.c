@@ -55,7 +55,7 @@
 void
 make_wait_tmout(uint_t tstat, WINFO *p_winfo, TMEVTB *p_tmevtb, TMO tmout)
 {
-	p_runtsk->tstat = tstat;
+	p_runtsk->tstat = (uint8_t)tstat;
 	make_non_runnable(p_runtsk);
 	p_runtsk->p_winfo = p_winfo;
 	if (tmout == TMO_FEVR) {

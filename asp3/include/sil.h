@@ -154,7 +154,7 @@ sil_reh_lem(const uint16_t *mem)
 	uint16_t	data;
 
 	data = *((const volatile uint16_t *) mem);
-	return(TOPPERS_SIL_REV_ENDIAN_UINT16(data));
+	return((uint16_t)TOPPERS_SIL_REV_ENDIAN_UINT16(data));
 }
 
 #endif /* TOPPERS_OMIT_SIL_REH_LEM */
@@ -163,7 +163,7 @@ sil_reh_lem(const uint16_t *mem)
 Inline void
 sil_wrh_lem(uint16_t *mem, uint16_t data)
 {
-	*((volatile uint16_t *) mem) = TOPPERS_SIL_REV_ENDIAN_UINT16(data);
+	*((volatile uint16_t *) mem) = (uint16_t)TOPPERS_SIL_REV_ENDIAN_UINT16(data);
 }
 
 #endif /* TOPPERS_OMIT_SIL_WRH_LEM */
@@ -181,7 +181,7 @@ sil_reh_bem(const uint16_t *mem)
 	uint16_t	data;
 
 	data = *((const volatile uint16_t *) mem);
-	return(TOPPERS_SIL_REV_ENDIAN_UINT16(data));
+	return((uint16_t)TOPPERS_SIL_REV_ENDIAN_UINT16(data));
 }
 
 #endif /* TOPPERS_OMIT_SIL_REH_BEM */
@@ -190,7 +190,7 @@ sil_reh_bem(const uint16_t *mem)
 Inline void
 sil_wrh_bem(uint16_t *mem, uint16_t data)
 {
-	*((volatile uint16_t *) mem) = TOPPERS_SIL_REV_ENDIAN_UINT16(data);
+	*((volatile uint16_t *) mem) = (uint16_t)TOPPERS_SIL_REV_ENDIAN_UINT16(data);
 }
 
 #endif /* TOPPERS_OMIT_SIL_WRH_BEM */

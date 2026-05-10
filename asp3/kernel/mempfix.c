@@ -305,7 +305,7 @@ rel_mpf(ID mpfid, void *blk)
 	CHECK_ID(VALID_MPFID(mpfid));
 	p_mpfcb = get_mpfcb(mpfid);
 	CHECK_PAR(p_mpfcb->p_mpfinib->mpf <= blk);
-	blkoffset = ((char *) blk) - (char *)(p_mpfcb->p_mpfinib->mpf);
+	blkoffset = (size_t)(((char *) blk) - (char *)(p_mpfcb->p_mpfinib->mpf));
 	CHECK_PAR(blkoffset % p_mpfcb->p_mpfinib->blksz == 0U);
 	CHECK_PAR(blkoffset / p_mpfcb->p_mpfinib->blksz < p_mpfcb->unused);
 	blkidx = (uint_t)(blkoffset / p_mpfcb->p_mpfinib->blksz);

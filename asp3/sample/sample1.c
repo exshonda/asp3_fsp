@@ -279,6 +279,7 @@ cpuexc_handler(void *p_excinf)
 void
 cyclic_handler(EXINF exinf)
 {
+	(void)exinf;
 	SVC_PERROR(rot_rdq(HIGH_PRIORITY));
 	SVC_PERROR(rot_rdq(MID_PRIORITY));
 	SVC_PERROR(rot_rdq(LOW_PRIORITY));
@@ -293,6 +294,7 @@ cyclic_handler(EXINF exinf)
 void
 alarm_handler(EXINF exinf)
 {
+	(void)exinf;
 	SVC_PERROR(rot_rdq(HIGH_PRIORITY));
 	SVC_PERROR(rot_rdq(MID_PRIORITY));
 	SVC_PERROR(rot_rdq(LOW_PRIORITY));
@@ -304,6 +306,7 @@ alarm_handler(EXINF exinf)
 void
 exc_task(EXINF exinf)
 {
+	(void)exinf;
 	SVC_PERROR(ras_ter(cpuexc_tskid));
 }
 
@@ -313,6 +316,7 @@ exc_task(EXINF exinf)
 void
 main_task(EXINF exinf)
 {
+	(void)exinf;
 	char	c;
 	ID		tskid = TASK1;
 	int_t	tskno = 1;
@@ -383,7 +387,7 @@ main_task(EXINF exinf)
 	task_loop = LOOP_REF * 400LU / (ulong_t)(stime2 - stime1) * 1000LU;
 
 #endif /* TASK_LOOP */
-
+    
 	/*
  	 *  タスクの起動
 	 */

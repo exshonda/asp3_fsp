@@ -4,7 +4,7 @@ list(APPEND ASP3_SYMVAL_TABLES
 )
 
 list(APPEND ASP3_OFFSET_TRB_FILES
-    ${ARCHDIR}/common/core_offset.trb
+    ${ARCHDIR}/common/core_offset.py
 )
 
 list(APPEND ASP3_INCLUDE_DIRS

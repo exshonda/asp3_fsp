@@ -65,7 +65,9 @@
 #else
 #define EXC_RETURN              0xfffffffd
 #endif
+#ifndef EXC_RETURN_PREFIX
 #define EXC_RETURN_PREFIX       0xff000000
+#endif /* EXC_RETURN_PREFIX */
 #define EXC_RETURN_HANDLER      0x0
 #define EXC_RETURN_THREAD       0x8
 #define EXC_RETURN_MSP          0x0

@@ -240,6 +240,10 @@ ALABEL(return_to_thread)
 	movs   r3, #EPSR_T
 	ldr    r0, [r0, #TCB_sp]
 	ldmfd  r0!, {r4-r11}
+#ifdef __ARM_FEATURE_MVE
+	ldmfd  r0!, {r12}
+	vmsr   VPR, r12
+#endif /* __ARM_FEATURE_MVE */
 	stmfd  r0!, {r1-r3}
 	subs   r0, #(4 * 5)
 	b      return_to_thread_0
@@ -271,6 +275,7 @@ ALABEL(return_to_thread_fp)
 	bx     lr
 #endif /* TOPPERS_FPU_CONTEXT */
 
+	.balign 4
 ALABEL(exc_return_const)
 	.word  EXC_RETURN
 
@@ -385,6 +390,10 @@ ALABEL(do_dispatch)
 	ands  r3, #CONTROL_FPCA
 	beq   dispatch_1 /* FPU の使用がなければ保存をスキップ */
 	vpush {s16-s31}
+#ifdef __ARM_FEATURE_MVE
+	vmrs  r12, VPR
+	push  {r12}
+#endif /* __ARM_FEATURE_MVE */
 	movs  r3, #CONTROL_INIT
 	msr   control, r3 /* FPCA をクリア */
 	isb
@@ -447,6 +456,10 @@ ALABEL(dispatcher_1_after_sp)
 #ifdef TOPPERS_FPU_CONTEXT
 	ldr   r3, [r1, #TCB_fpu_flag]
 	cbz   r3, dispatcher_2
+#ifdef __ARM_FEATURE_MVE
+	pop   {r12}
+	vmsr  VPR, r12
+#endif /* __ARM_FEATURE_MVE */
 	vpop  {s16-s31} /* CONTROL.FPCA もセットされる */
 ALABEL(dispatcher_2)
 #endif /* TOPPERS_FPU_CONTEXT */

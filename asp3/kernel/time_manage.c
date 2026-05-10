@@ -159,7 +159,7 @@ adj_tim(int32_t adjtim)
 	}
 	else {
 		previous_evttim = current_evttim;
-		current_evttim += adjtim;				/*［ASPD1053］*/
+		current_evttim += (EVTTIM)adjtim;				/*［ASPD1053］*/
 		boundary_evttim = current_evttim - BOUNDARY_MARGIN;	/*［ASPD1055］*/
 
 		if (adjtim > 0

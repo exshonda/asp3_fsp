@@ -275,7 +275,7 @@ chg_pri(ID tskid, PRI tskpri)
 		ercd = E_ILUSE;							/*［NGKI1201］*/
 	}
 	else {
-		p_tcb->bpriority = newbpri;				/*［NGKI1192］*/
+		p_tcb->bpriority = (uint8_t)newbpri;				/*［NGKI1192］*/
 		if (!(p_tcb->boosted)) {
 			change_priority(p_tcb, newbpri, false);		/*［NGKI1193］*/
 			if (p_runtsk != p_schedtsk) {
