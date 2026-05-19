@@ -1,0 +1,21 @@
+/*
+ * TOPPERS/ASP3 固有のセクションを FLASH に配置するための追加リンカスクリプト。
+ *
+ * RASC が生成する fsp_gen.lld は ASP3 固有セクションを認識しないため、
+ * ld.lld のデフォルト orphan placement では最後の memory region
+ * (OPTION_SETTING_OTP_ZHUK) に流れ込んでリンクエラーになる。
+ * 本ファイルを追加 -T で渡し、INSERT AFTER で __flash_readonly$$ の
+ * 直後に明示配置することで回避する。
+ *
+ *   .vector                       : ASP3 のベクタテーブル
+ *   .empty._kernel_inhinib_table  : 例外ハンドラ初期化ブロック（空ラベル）
+ *   .empty._kernel_intinib_table  : 割込みハンドラ初期化ブロック（空ラベル）
+ */
+SECTIONS
+{
+    .asp3_vector :
+    {
+        KEEP(*(.vector))
+        *(.empty.*)
+    } > FLASH
+} INSERT AFTER __flash_readonly$$;

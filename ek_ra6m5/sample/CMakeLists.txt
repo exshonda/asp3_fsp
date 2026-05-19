@@ -51,6 +51,19 @@ include(${CMAKE_CURRENT_LIST_DIR}/cmake/GeneratedCfg.cmake)
 string(REPLACE "-Os" "-O2" RASC_CMAKE_C_FLAGS   "${RASC_CMAKE_C_FLAGS}")
 string(REPLACE "-Os" "-O2" RASC_CMAKE_CXX_FLAGS "${RASC_CMAKE_CXX_FLAGS}")
 
+# ATfE 21.x の clang は既定で picolibc の crt0.o を引き込み、その _start が
+# __data_size/__bss_start などを参照するが、ASP3+FSP のリンカスクリプトは
+# これらを定義していない（エントリは Reset_Handler）。crt0 等のスタートアップ
+# ファイルをリンクから除外する。
+list(APPEND RASC_CMAKE_EXE_LINKER_FLAGS "-nostartfiles")
+
+# RASC が生成する script/fsp.lld (fsp_gen.lld) は ASP3 固有セクション
+# (.vector, .empty.*) を認識しないため、ld.lld のデフォルト orphan placement
+# で最後の memory region に配置されてリンクエラーになる。
+# 追加リンカスクリプトを -T で渡し、FLASH 内に明示配置する。
+list(APPEND RASC_CMAKE_EXE_LINKER_FLAGS
+    "-T" "${CMAKE_CURRENT_LIST_DIR}/cmake/asp3_sections.lld")
+
 # RASCで生成されるra/・ra_gen/が無いとGeneratedSrc.cmakeのGLOBが空になり
 # 1回目のビルドでソース不足によるリンクエラーが発生するため、
 # configure時にRASCを実行してコンテンツを先に生成しておく
