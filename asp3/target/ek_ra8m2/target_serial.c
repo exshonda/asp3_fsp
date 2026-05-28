@@ -63,8 +63,8 @@ void sio_terminate(intptr_t exinf)
         p_siopcb = &(siopcb_table[i]);
         if (p_siopcb->is_opend) {
             /*
-                *  オープンされているSIOポートのクローズ
-                */
+             *  オープンされているSIOポートのクローズ
+             */
             sio_cls_por(&(siopcb_table[i]));
         }
     }

@@ -20,6 +20,7 @@ struct sio_port_control_block
     const uart_instance_t *handle;  /* UARTハンドル */
     bool_t rdy_snd;                 /* 送信可能コールバック */
     bool_t rdy_rcv;                 /* 受信通知コールバック */
+    uint8_t snd_byte;               /* 送信中バイト（FSP TXI ISR 用の永続バッファ） */
     uint8_t rcv_buf[256];           /* 受信バッファ */
     uint32_t rcv_wpos;              /* 受信バッファ書き込み位置 */
     uint32_t rcv_rpos;              /* 受信バッファ読み込み位置 */
@@ -29,7 +30,7 @@ struct sio_port_control_block
  *  SIOポート管理ブロックのエリア
  */
 static SIOPCB siopcb_table[TNUM_PORT] = {
-    {0, false, &g_uart0, false, false, {0}, 0, 0},
+    {0, false, &g_uart0, false, false, 0, {0}, 0, 0},
 };
 
 /*
@@ -91,7 +92,8 @@ SIOPCB *sio_opn_por(ID siopid, intptr_t exinf)
     p_siopcb->rcv_rpos = 0;
 
     status = R_SCI_UART_Open(p_siopcb->handle->p_ctrl, p_siopcb->handle->p_cfg);
-    if (status != FSP_SUCCESS) {
+    /* target_initialize() が既に Open 済みの場合は ALREADY_OPEN を正常扱いにする */
+    if (status != FSP_SUCCESS && status != FSP_ERR_ALREADY_OPEN) {
         return NULL;
     }
     p_siopcb->is_opend = true;
@@ -118,7 +120,10 @@ bool_t sio_snd_chr(SIOPCB *p_siopcb, char ch)
     if (p_ctrl->p_reg->SSR_b.TDRE == 0) {
         return false; // 送信可能でない場合
     }
-    if (R_SCI_UART_Write(p_siopcb->handle->p_ctrl, (uint8_t *)&ch, 1) == FSP_SUCCESS) {
+    /* FSP の R_SCI_UART_Write はポインタを TXI ISR まで保持するため，
+     * スタック上のローカル変数 ch のアドレスではなく永続バッファを渡す． */
+    p_siopcb->snd_byte = (uint8_t)ch;
+    if (R_SCI_UART_Write(p_siopcb->handle->p_ctrl, &p_siopcb->snd_byte, 1) == FSP_SUCCESS) {
         result = true; // 送信成功
     }
     return result;
@@ -147,8 +152,7 @@ void sio_ena_cbr(SIOPCB *p_siopcb, uint_t cbrtn)
     switch (cbrtn) {
     case SIO_RDY_SND:
         p_siopcb->rdy_snd = true;
-        enable_int((INTNO)(p_siopcb->handle->p_cfg->txi_irq + 16));
-        //enable_int((INTNO)(p_siopcb->handle->p_cfg->tei_irq + 16));
+        /* TIE/TEIE は R_SCI_UART_Write が SCR で管理するため NVIC は触らない */
         break;
     case SIO_RDY_RCV:
         p_siopcb->rdy_rcv = true;
@@ -167,8 +171,7 @@ void sio_dis_cbr(SIOPCB *p_siopcb, uint_t cbrtn)
     switch (cbrtn) {
     case SIO_RDY_SND:
         p_siopcb->rdy_snd = false;
-        disable_int((INTNO)(p_siopcb->handle->p_cfg->txi_irq + 16));
-        //disable_int((INTNO)(p_siopcb->handle->p_cfg->tei_irq + 16));
+        /* TIE は FSP の R_SCI_UART_Write が SCR で管理するため NVIC は触らない */
         break;
     case SIO_RDY_RCV:
         p_siopcb->rdy_rcv = false;
