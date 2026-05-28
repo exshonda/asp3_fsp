@@ -182,6 +182,25 @@ void sio_dis_cbr(SIOPCB *p_siopcb, uint_t cbrtn)
     }
 }
 
+#define SCI_SCR_TEIE_MASK                       (0x04U) ///< Transmit End Interrupt Enable
+#define SCI_SCR_TIE_MASK                        (0x80U) ///< Transmit Interrupt Enable
+
+/*
+ * SIOポートへの文字出力
+ */
+static void target_fput_log_byte(sci_uart_instance_ctrl_t *p_ctrl, uint8_t b)
+{
+    uint8_t reg;
+    /* Keep TE=1 (set by R_SCI_UART_Open). Disable interrupt enables to prevent
+     * ISR interference, wait for TDR empty, write byte, then wait for transmission. */
+    reg = p_ctrl->p_reg->SCR;
+    p_ctrl->p_reg->SCR &= (uint8_t) ~(SCI_SCR_TIE_MASK | SCI_SCR_TEIE_MASK);
+    do { } while (p_ctrl->p_reg->SSR_b.TDRE == 0);
+    p_ctrl->p_reg->FTDRL = b;
+    do { } while (p_ctrl->p_reg->SSR_b.TEND == 0);
+    p_ctrl->p_reg->SCR = reg;
+}
+
 /*
  * SIOポートへの文字出力
  */
@@ -191,11 +210,9 @@ void target_fput_log(char c)
     sci_uart_instance_ctrl_t *p_ctrl = (sci_uart_instance_ctrl_t *)p_siopcb->handle->p_ctrl;
 
     if (c == '\n') {
-        R_SCI_UART_Write(p_ctrl, (uint8_t *)"\r", 1);
-        do { } while (p_ctrl->p_reg->SSR_b.TDRE == 0);
+        target_fput_log_byte(p_ctrl, '\r');
     }
-    R_SCI_UART_Write(p_ctrl, (uint8_t *)&c, 1);
-    do { } while (p_ctrl->p_reg->SSR_b.TDRE == 0);
+    target_fput_log_byte(p_ctrl, (uint8_t)c);
 }
 
 void target_uart_txi(SIOPCB *p_siopcb)
