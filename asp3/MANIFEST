@@ -1,7 +1,8 @@
 PACKAGE asp3
 VERSION 3.7.1
 
-configure.rb
+asp3_fsp.cmake
+CMakeLists.txt
 MANIFEST
 README.txt
 
@@ -26,31 +27,30 @@ include/t_stddef.h
 include/t_stdlib.h
 include/t_syslog.h
 
-kernel/Makefile.kernel
 kernel/alarm.c
 kernel/alarm.h
-kernel/alarm.trb
+kernel/alarm.py
 kernel/allfunc.h
 kernel/check.h
 kernel/cyclic.c
 kernel/cyclic.h
-kernel/cyclic.trb
+kernel/cyclic.py
 kernel/dataqueue.c
 kernel/dataqueue.h
-kernel/dataqueue.trb
+kernel/dataqueue.py
 kernel/eventflag.c
 kernel/eventflag.h
-kernel/eventflag.trb
+kernel/eventflag.py
 kernel/exception.c
 kernel/exception.h
-kernel/exception.trb
-kernel/genoffset.trb
+kernel/exception.py
+kernel/genoffset.py
 kernel/interrupt.c
 kernel/interrupt.h
-kernel/interrupt.trb
-kernel/kernel.trb
+kernel/interrupt.py
+kernel/kernel.py
 kernel/kernel_api.def
-kernel/kernel_check.trb
+kernel/kernel_check.py
 kernel/kernel_impl.h
 kernel/kernel_int.h
 kernel/kernel_rename.def
@@ -59,21 +59,21 @@ kernel/kernel_sym.def
 kernel/kernel_unrename.h
 kernel/mempfix.c
 kernel/mempfix.h
-kernel/mempfix.trb
+kernel/mempfix.py
 kernel/mutex.c
 kernel/mutex.h
-kernel/mutex.trb
+kernel/mutex.py
 kernel/pridataq.c
 kernel/pridataq.h
-kernel/pridataq.trb
+kernel/pridataq.py
 kernel/semaphore.c
 kernel/semaphore.h
-kernel/semaphore.trb
+kernel/semaphore.py
 kernel/startup.c
 kernel/sys_manage.c
 kernel/task.c
 kernel/task.h
-kernel/task.trb
+kernel/task.py
 kernel/task_manage.c
 kernel/task_refer.c
 kernel/task_sync.c
@@ -86,61 +86,56 @@ kernel/time_manage.c
 kernel/wait.c
 kernel/wait.h
 
-tecs_kernel/init_tecs.c
-tecs_kernel/kernel.cdl
-tecs_kernel/tAlarmNotifier.c
-tecs_kernel/tAlarmNotifier_inline.h
-tecs_kernel/tCyclicNotifier.c
-tecs_kernel/tCyclicNotifier_inline.h
-tecs_kernel/tDataqueue_inline.h
-tecs_kernel/tEventflag_inline.h
-tecs_kernel/tFixedSizeMemoryPool_inline.h
-tecs_kernel/tISR.c
-tecs_kernel/tInitializeRoutine.c
-tecs_kernel/tInterruptRequest_inline.h
-tecs_kernel/tKernel_inline.h
-tecs_kernel/tMutex_inline.h
-tecs_kernel/tPriorityDataqueue_inline.h
-tecs_kernel/tSemaphore_inline.h
-tecs_kernel/tTask.c
-tecs_kernel/tTask_inline.h
-tecs_kernel/tTerminateRoutine.c
-tecs_kernel/tecs_kernel.h
-
+syssvc/banner.c
+syssvc/banner.cfg
+syssvc/banner.h
+syssvc/histogram.c
 syssvc/histogram.h
+syssvc/logtask.c
+syssvc/logtask.cfg
+syssvc/logtask.h
+syssvc/serial.c
+syssvc/serial.cfg
 syssvc/serial.h
+syssvc/serial_cfg.c
+syssvc/syslog.c
+syssvc/syslog.cfg
 syssvc/syslog.h
-syssvc/tHistogram.c
-syssvc/tHistogram.cdl
-syssvc/tHistogram.h
-syssvc/tHistogramAdapter.c
-syssvc/tHistogramAdapter.cdl
-syssvc/tBanner.cdl
-syssvc/tBannerMain.c
-syssvc/tLogTask.cdl
-syssvc/tLogTaskMain.c
-syssvc/tPutLogSIOPort.c
-syssvc/tPutLogSIOPort.cdl
-syssvc/tSerialAdapter.c
-syssvc/tSerialAdapter.cdl
-syssvc/tSerialPort.cdl
-syssvc/tSerialPortMain.c
-syssvc/tSysLog.c
-syssvc/tSysLog.cdl
-syssvc/tSysLogAdapter.c
-syssvc/tSysLogAdapter.cdl
-syssvc/tTestService.c
-syssvc/tTestService.cdl
-syssvc/tTestServiceAdapter.c
-syssvc/tTestServiceAdapter.cdl
+syssvc/syssvc.cmake
 syssvc/test_svc.h
 
+library/library.cmake
 library/log_output.c
 library/strerror.c
 library/t_perror.c
 library/vasyslog.c
 
+arch/arm_m_gcc/common/arm_m.h
+arch/arm_m_gcc/common/core_asm.inc
+arch/arm_m_gcc/common/core_cfg1_out.h
+arch/arm_m_gcc/common/core_check.py
+arch/arm_m_gcc/common/core_design.txt
+arch/arm_m_gcc/common/core_insn.h
+arch/arm_m_gcc/common/core_kernel.h
+arch/arm_m_gcc/common/core_kernel_impl.c
+arch/arm_m_gcc/common/core_kernel_impl.h
+arch/arm_m_gcc/common/core_kernel_impl_v6m.h
+arch/arm_m_gcc/common/core_offset.py
+arch/arm_m_gcc/common/core_rename.def
+arch/arm_m_gcc/common/core_rename.h
+arch/arm_m_gcc/common/core_sil.h
+arch/arm_m_gcc/common/core_stddef.h
+arch/arm_m_gcc/common/core_support.S
+arch/arm_m_gcc/common/core_support_v6m.S
+arch/arm_m_gcc/common/core_sym.def
+arch/arm_m_gcc/common/core_sym_v6m.def
+arch/arm_m_gcc/common/core_test.h
+arch/arm_m_gcc/common/core_unrename.h
+arch/arm_m_gcc/common/core_user.txt
+arch/arm_m_gcc/common/start.S
+arch/arm_m_gcc/doc/design.md
 arch/gcc/tool_stddef.h
+arch/tracelog/trace_log.h
 
 arch/tracelog/trace_log.h
 arch/tracelog/tTraceLog.c
@@ -155,23 +150,16 @@ arch/simtimer/tSimTimerCntl.cdl
 arch/simtimer/tSimTimerCntlAdapter.c
 arch/simtimer/tSimTimerCntlAdapter.cdl
 
-utils/applyrename.rb
-utils/genrename.rb
-utils/gentest.rb
-utils/makerelease.rb
-
 sample/Makefile
 sample/sample1.c
-sample/sample1.cdl
 sample/sample1.cfg
 sample/sample1.h
-sample/tSample2.c
-sample/tSample2.cdl
-sample/tSample2.cfg
-sample/tSample2.h
 
+INCLUDE arch/arm_m_gcc/ra6m5_fsp/MANIFEST
+INCLUDE arch/arm_m_gcc/ra8m2_fsp/MANIFEST
 INCLUDE cfg/MANIFEST
 INCLUDE test/MANIFEST
 INCLUDE test_cfg/MANIFEST
 INCLUDE extension/MANIFEST
-INCLUDE target/dummy_gcc/MANIFEST
+INCLUDE target/ek_ra6m5/MANIFEST
+INCLUDE target/ek_ra8m2/MANIFEST

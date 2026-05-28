@@ -1,5 +1,6 @@
 PACKAGE asp3_arch_arm_m_gcc
 
+arch.cmake
 chip_cfg1_out.h
 chip_kernel.h
 chip_kernel_impl.h
@@ -9,5 +10,4 @@ chip_sil.h
 chip_stddef.h
 chip_syssvc.h
 chip_unrename.h
-Makefile.chip
 MANIFEST
