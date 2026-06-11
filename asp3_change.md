@@ -356,3 +356,67 @@ blkoffset = (size_t)(((char *) blk) - (char *)(p_mpfcb->p_mpfinib->mpf));
 ```c
 current_evttim += (EVTTIM)adjtim;
 ```
+
+---
+
+## Step 6: EK-RA8M2 起動時シリアル文字化け修正
+
+対象ボード: EK-RA8M2 (SCI_B = R_SCI_B_UART, SCI8, 115200 8N1)
+
+### 症状
+
+TOPPERS/ASP3 起動バナー（`target_fput_log` によるポーリング送信）は正常に表示される。
+その直後の割り込み駆動出力（"System logging task is started on port 1." 等）の先頭
+数バイトが文字化けする。EK-RA6M5 (SCI = R_SCI_UART) では同様の文字化けは発生しない。
+
+### 根本原因
+
+RA8M2 の SCI_B ハードウェアは TE (Transmit Enable) と TIE (Transmit Interrupt Enable)
+を必ず同時に（単一レジスタ書き込みで）セットする必要がある。この制約を満たすため，
+`R_SCI_B_UART_Write`（FSP）は以下の手順で送信を開始する：
+
+1. TIE/TEIE をクリア
+2. TEND=1 待ち（前の送信が完了していることを確認）
+3. **TE をクリア**（CCR0 &= ~TE）
+4. CESR.TIST=0 待ち（TE=0 が内部状態に反映されるまで待つ）
+5. CCR0 |= (TE | TIE)（TE と TIE を同時にセット）
+
+ポーリング送信後は TE=1 のままである。`sio_opn_por`（割り込み駆動モードへの切り替え）
+直後に最初の `R_SCI_B_UART_Write` が呼ばれると，TE の 1→0→1 トグルが生じる。
+この TE=1→0 の瞬間に TX 線が一時的に LOW となり，受信側 UART がスタートビットと
+誤判定して偽のフレームを受信しようとする。その結果，後続の正規バイトの先頭数バイトが
+ズレて文字化けする。
+
+定常状態（2 文字目以降）では `sci_b_uart_tei_isr` が TEI 割り込み時に CCR0 の
+TE/TIE/TEIE を一括クリアしてから callback → `sio_snd_chr` → `R_SCI_B_UART_Write`
+を呼ぶため，Write 到達時点で TE=0 が保証されており，グリッチは発生しない。
+
+なお RA6M5 の `R_SCI_UART_Write` は TE をトグルせず，最初のバイトを直接 TDR に書き込む
+設計のため，この問題は発生しない。
+
+### 修正内容
+
+**ファイル**: `asp3/target/ek_ra8m2/target_serial.c`
+
+`sio_opn_por` 内，`FSP_ERR_ALREADY_OPEN` の処理直後に TE クリアブロックを追加。
+`sci_b_uart_tei_isr` と同一の操作を行い，最初の `R_SCI_B_UART_Write` が
+TE=0 の状態で呼ばれることを保証する。
+
+```c
+if (status == FSP_ERR_ALREADY_OPEN) {
+    sci_b_uart_instance_ctrl_t *p_ctrl =
+        (sci_b_uart_instance_ctrl_t *)p_siopcb->handle->p_ctrl;
+    /* ポーリング送信が完了していることを確認（TEND=1 待ち）*/
+    do { } while (p_ctrl->p_reg->CSR_b.TEND == 0);
+    /* TIE/TEIE/TE を一括クリア（sci_b_uart_tei_isr と同じ操作）*/
+    p_ctrl->p_reg->CCR0 &= (uint32_t)~(R_SCI_B0_CCR0_TE_Msk
+                                       | R_SCI_B0_CCR0_TIE_Msk
+                                       | R_SCI_B0_CCR0_TEIE_Msk);
+    /* TE=0 が内部状態に反映されるまで待つ（CESR.TIST=0 待ち）*/
+    do { } while (p_ctrl->p_reg->CESR_b.TIST != 0);
+}
+```
+
+### コミット
+
+`b830742 fix(target): resolve startup serial garbling on EK-RA8M2 at polling→interrupt transition`
