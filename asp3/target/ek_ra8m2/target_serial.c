@@ -96,6 +96,28 @@ SIOPCB *sio_opn_por(ID siopid, intptr_t exinf)
     if (status != FSP_SUCCESS && status != FSP_ERR_ALREADY_OPEN) {
         return NULL;
     }
+
+    if (status == FSP_ERR_ALREADY_OPEN) {
+        /*
+         * ポーリング送信後は TE=1 のまま。R_SCI_B_UART_Write は TE を必ず
+         * 1→0→1 とトグルするため，TE=1 状態で最初の Write を呼ぶと TX 線に
+         * 短い LOW グリッチが生じ，受信側がスタートビットと誤判定して先頭
+         * 数バイトが文字化けする。
+         * ここで TE=0 にしておくことで，TEI ISR が毎回 TE を Clear した後に
+         * Write を呼ぶ定常動作と同一の初期状態になり，文字化けを防ぐ。
+         */
+        sci_b_uart_instance_ctrl_t *p_ctrl =
+            (sci_b_uart_instance_ctrl_t *)p_siopcb->handle->p_ctrl;
+        /* ポーリング送信が完了していることを確認（TEND=1 待ち）*/
+        do { } while (p_ctrl->p_reg->CSR_b.TEND == 0);
+        /* TIE/TEIE/TE を一括クリア（sci_b_uart_tei_isr と同じ操作）*/
+        p_ctrl->p_reg->CCR0 &= (uint32_t)~(R_SCI_B0_CCR0_TE_Msk
+                                           | R_SCI_B0_CCR0_TIE_Msk
+                                           | R_SCI_B0_CCR0_TEIE_Msk);
+        /* TE=0 が内部状態に反映されるまで待つ（CESR.TIST=0 待ち）*/
+        do { } while (p_ctrl->p_reg->CESR_b.TIST != 0);
+    }
+
     p_siopcb->is_opend = true;
 
     return p_siopcb;
