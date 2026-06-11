@@ -362,61 +362,64 @@ current_evttim += (EVTTIM)adjtim;
 ## Step 6: EK-RA8M2 起動時シリアル文字化け修正
 
 対象ボード: EK-RA8M2 (SCI_B = R_SCI_B_UART, SCI8, 115200 8N1)
+変更ファイル: `asp3/target/ek_ra8m2/target_serial.c` のみ（カーネル・FSP 本体は未変更）
 
 ### 症状
 
-TOPPERS/ASP3 起動バナー（`target_fput_log` によるポーリング送信）は正常に表示される。
-その直後の割り込み駆動出力（"System logging task is started on port 1." 等）の先頭
-数バイトが文字化けする。EK-RA6M5 (SCI = R_SCI_UART) では同様の文字化けは発生しない。
+TOPPERS/ASP3 起動バナー（`target_fput_log` によるポーリング送信）は正常表示。
+その直後の割り込み駆動出力（"System logging task is started on port 1."）の
+**先頭が文字化け**する。本文以降・"Sample program starts"・"task1 is running" は正常。
+EK-RA6M5 (SCI = R_SCI_UART) では発生しない。
 
-### 根本原因
+### 実機調査で判明した事実（J-Link で受信バイトを hex 取得して切り分け）
 
-RA8M2 の SCI_B ハードウェアは TE (Transmit Enable) と TIE (Transmit Interrupt Enable)
-を必ず同時に（単一レジスタ書き込みで）セットする必要がある。この制約を満たすため，
-`R_SCI_B_UART_Write`（FSP）は以下の手順で送信を開始する：
+1. 文字化けは決定論的（同じバイト値が反復）であり，電気ノイズではなく
+   **受信側 UART のフレーム同期ずれ**である。長いアイドルが来ると再同期して回復する。
+2. 文字化けの実体は 2 つの独立要因の合成だった：
+   - **(A) 再 Open グリッチ**（支配的・多バイトの化け）
+   - **(B) TE セット時の 1 フレーム遅延**（先頭 1 バイト 0xFE）
 
-1. TIE/TEIE をクリア
-2. TEND=1 待ち（前の送信が完了していることを確認）
-3. **TE をクリア**（CCR0 &= ~TE）
-4. CESR.TIST=0 待ち（TE=0 が内部状態に反映されるまで待つ）
-5. CCR0 |= (TE | TIE)（TE と TIE を同時にセット）
+#### (A) 再 Open グリッチ
 
-ポーリング送信後は TE=1 のままである。`sio_opn_por`（割り込み駆動モードへの切り替え）
-直後に最初の `R_SCI_B_UART_Write` が呼ばれると，TE の 1→0→1 トグルが生じる。
-この TE=1→0 の瞬間に TX 線が一時的に LOW となり，受信側 UART がスタートビットと
-誤判定して偽のフレームを受信しようとする。その結果，後続の正規バイトの先頭数バイトが
-ズレて文字化けする。
+`sio_opn_por` は割り込み駆動送信を確立するため `R_SCI_B_UART_Open` を呼ぶ。
+本プロジェクトは `BSP_CFG_PARAM_CHECKING_ENABLE=0` のため，FSP の Open は
+`ALREADY_OPEN` を返さず（その判定が条件コンパイルで無効），**全レジスタを再初期化**する。
+その過程の `CCR0 = IDSEL`（TE/RE を一旦 0 にする）で TXD 線に短い LOW グリッチが乗り，
+受信側が同期を失う。直後の最初のメッセージが広範囲に化ける。
+この再 Open 自体は **送信確立に必須**（省くと TXI/TEI が NVIC で有効化されず，
+割り込み駆動送信が始まらないことを実機で確認）。
 
-定常状態（2 文字目以降）では `sci_b_uart_tei_isr` が TEI 割り込み時に CCR0 の
-TE/TIE/TEIE を一括クリアしてから callback → `sio_snd_chr` → `R_SCI_B_UART_Write`
-を呼ぶため，Write 到達時点で TE=0 が保証されており，グリッチは発生しない。
+#### (B) TE セット時の 1 フレーム遅延（残存 1 バイト 0xFE）
 
-なお RA6M5 の `R_SCI_UART_Write` は TE をトグルせず，最初のバイトを直接 TDR に書き込む
-設計のため，この問題は発生しない。
+`R_SCI_B_UART_Write` は送信のたびに TE を 1→0→1 とトグルする。冷えた最初の送信での
+TE セットは «TE セット時の 1 フレーム遅延»（RA ハードウェアマニュアル／RA6M5 FSP の
+コメントが言及）により TXD に約 2 ビット幅の LOW を生じ，受信側がこれを 1 フレーム
+(0xFE) として拾う。データ書き込みの有無に依らず CCR0|=TE だけで発生することを実機確認。
+TE をトグルしない送信（下記）にしても (A) の再 Open グリッチ由来で 0xFE は残るため，
+**この 1 バイトは target_serial.c 内の後処理だけでは除去不可**（除去には FSP の Open
+改変等が必要だが本対応のスコープ外）。
 
 ### 修正内容
 
-**ファイル**: `asp3/target/ek_ra8m2/target_serial.c`
+1. **再 Open グリッチからの再同期**: `sio_opn_por` で `R_SCI_B_UART_Open` 後に
+   `sil_dly_nse(10ms)` で TXD を idle(High) のまま保持し，受信側を再同期させてから
+   実データ送信に入る（起動時に一度だけ）。これで (A) 由来の多バイト化けが解消し，
+   化けは先頭 1 バイト(0xFE)のみに縮退する（実機で 1ms→数バイト化け，10ms→1バイトを確認）。
 
-`sio_opn_por` 内，`FSP_ERR_ALREADY_OPEN` の処理直後に TE クリアブロックを追加。
-`sci_b_uart_tei_isr` と同一の操作を行い，最初の `R_SCI_B_UART_Write` が
-TE=0 の状態で呼ばれることを保証する。
+2. **TE 非トグル送信（RA6M5 流）**: `sio_snd_chr` は `R_SCI_B_UART_Write` を使わず，
+   TE は Open 時の 1 のまま維持し，グリッチのないポーリングと同様に TDR へ直接書き込んで
+   送信し TIE を許可する。次バイトは `UART_EVENT_TX_DATA_EMPTY` を契機に供給する。
+   FSP TXI ISR が送信完了で立てる TEIE を `target_uart_handler` のコールバックで
+   クリアして `sci_b_uart_tei_isr` による TE クリアを抑止し，TE を一切トグルしない。
+   （`tx_src_bytes` は 0 のままにし FSP TXI ISR には TDR を書かせない）
 
-```c
-if (status == FSP_ERR_ALREADY_OPEN) {
-    sci_b_uart_instance_ctrl_t *p_ctrl =
-        (sci_b_uart_instance_ctrl_t *)p_siopcb->handle->p_ctrl;
-    /* ポーリング送信が完了していることを確認（TEND=1 待ち）*/
-    do { } while (p_ctrl->p_reg->CSR_b.TEND == 0);
-    /* TIE/TEIE/TE を一括クリア（sci_b_uart_tei_isr と同じ操作）*/
-    p_ctrl->p_reg->CCR0 &= (uint32_t)~(R_SCI_B0_CCR0_TE_Msk
-                                       | R_SCI_B0_CCR0_TIE_Msk
-                                       | R_SCI_B0_CCR0_TEIE_Msk);
-    /* TE=0 が内部状態に反映されるまで待つ（CESR.TIST=0 待ち）*/
-    do { } while (p_ctrl->p_reg->CESR_b.TIST != 0);
-}
-```
+### 結果（実機 115200 8N1）
 
-### コミット
+- バナー：正常
+- "System logging task is started on port 1."：先頭に 0xFE が 1 バイトのみ，以降は完全クリーン
+- "Sample program starts" / "task1 is running (NNN)."：完全クリーン
+- 複数回リセットで安定（残存は常に 0xFE 1 バイトのみ）
 
-`b830742 fix(target): resolve startup serial garbling on EK-RA8M2 at polling→interrupt transition`
+文字化けは「先頭メッセージ全体＋広範囲」から「先頭 0xFE 1 バイトのみ」へ大幅低減。
+残存 1 バイトは上記 (B)+(A) の SCI_B ハードウェア特性によるもので，
+`target_serial.c` に閉じた対応の限界として確定（ユーザ合意済み）。

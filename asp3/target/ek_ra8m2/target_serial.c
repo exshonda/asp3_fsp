@@ -9,6 +9,7 @@
 #include "r_uart_api.h"
 #include "kernel_impl.h"
 #include "t_stddef.h"
+#include <sil.h>
 #include "target_serial.h"
 #include "target_syssvc.h"
 #include "hal_data.h"
@@ -91,32 +92,25 @@ SIOPCB *sio_opn_por(ID siopid, intptr_t exinf)
     p_siopcb->rcv_wpos = 0;
     p_siopcb->rcv_rpos = 0;
 
+    /*
+     * target_initialize() で g_uart0 は既に R_SCI_B_UART_Open 済みだが，ここで
+     * 再 Open する．BSP_CFG_PARAM_CHECKING_ENABLE=0 のため FSP の R_SCI_B_UART_Open
+     * は ALREADY_OPEN を返さず全レジスタを再初期化し，TXI/TEI 割込みを NVIC で
+     * 有効化する（この再初期化を省くと割り込み駆動送信が確立せず，先頭メッセージ
+     * 以降が一切出力されないことを実機で確認済み）．
+     */
     status = R_SCI_B_UART_Open(p_siopcb->handle->p_ctrl, p_siopcb->handle->p_cfg);
-    /* target_initialize() が既に Open 済みの場合は ALREADY_OPEN を正常扱いにする */
-    if (status != FSP_SUCCESS && status != FSP_ERR_ALREADY_OPEN) {
+    if (status != FSP_SUCCESS) {
         return NULL;
     }
 
-    if (status == FSP_ERR_ALREADY_OPEN) {
-        /*
-         * ポーリング送信後は TE=1 のまま。R_SCI_B_UART_Write は TE を必ず
-         * 1→0→1 とトグルするため，TE=1 状態で最初の Write を呼ぶと TX 線に
-         * 短い LOW グリッチが生じ，受信側がスタートビットと誤判定して先頭
-         * 数バイトが文字化けする。
-         * ここで TE=0 にしておくことで，TEI ISR が毎回 TE を Clear した後に
-         * Write を呼ぶ定常動作と同一の初期状態になり，文字化けを防ぐ。
-         */
-        sci_b_uart_instance_ctrl_t *p_ctrl =
-            (sci_b_uart_instance_ctrl_t *)p_siopcb->handle->p_ctrl;
-        /* ポーリング送信が完了していることを確認（TEND=1 待ち）*/
-        do { } while (p_ctrl->p_reg->CSR_b.TEND == 0);
-        /* TIE/TEIE/TE を一括クリア（sci_b_uart_tei_isr と同じ操作）*/
-        p_ctrl->p_reg->CCR0 &= (uint32_t)~(R_SCI_B0_CCR0_TE_Msk
-                                           | R_SCI_B0_CCR0_TIE_Msk
-                                           | R_SCI_B0_CCR0_TEIE_Msk);
-        /* TE=0 が内部状態に反映されるまで待つ（CESR.TIST=0 待ち）*/
-        do { } while (p_ctrl->p_reg->CESR_b.TIST != 0);
-    }
+    /*
+     * 再 Open の再初期化過程（CCR0=IDSEL で TE を一旦落とす）で TXD に短い LOW
+     * グリッチが生じ，受信側 UART が同期を失う．TXD を idle(High) のまま十分な
+     * 時間保持して受信側を再同期させてから実データ送信に入ることで，先頭メッセージ
+     * の文字化けを最小化する（このルーチンは起動時に一度だけ実行される）．
+     */
+    sil_dly_nse(10000000U);
 
     p_siopcb->is_opend = true;
 
@@ -139,13 +133,34 @@ void sio_cls_por(SIOPCB *p_siopcb)
 bool_t sio_snd_chr(SIOPCB *p_siopcb, char ch)
 {
     sci_b_uart_instance_ctrl_t * p_ctrl = (sci_b_uart_instance_ctrl_t *) p_siopcb->handle->p_ctrl;
+
+    /* TDR が空いていなければ受け付けない．
+     * （serial 層はこの false を受けて文字をバッファし，SIO_RDY_SND→sio_irdy_snd
+     *   で再送する） */
     if (p_ctrl->p_reg->CSR_b.TDRE == 0) {
         return false;
     }
-    /* FSP の R_SCI_B_UART_Write はポインタを TXI ISR まで保持するため，
-     * スタック上のローカル変数 ch のアドレスではなく永続バッファを渡す． */
-    p_siopcb->snd_byte = (uint8_t)ch;
-    return R_SCI_B_UART_Write(p_siopcb->handle->p_ctrl, &p_siopcb->snd_byte, 1) == FSP_SUCCESS;
+
+    /*
+     * R_SCI_B_UART_Write は送信のたびに «TE クリア → TE|TIE 同時セット» と TE を
+     * トグルする．冷えた最初の送信ではこの TE セットが «TE セット時の 1 フレーム
+     * 遅延»（TXD の短い LOW グリッチ）を生じ，先頭バイトに 0xFE 相当の偽フレームが
+     * 混入する（実機で確認）．これを避けるため Write は使わず，TE は Open 時の 1 の
+     * まま一切トグルしない（RA6M5 の R_SCI_UART_Write と同じ思想）．
+     *
+     * 具体的には，グリッチのないポーリング送信(target_fput_log_byte)と同様に TDR へ
+     * 直接 1 バイト書き込んで送信し，TIE を許可する．TIE のセットだけでは TDRE が
+     * 既に 1 のとき TXI のエッジが立たず割込みが起きないため，必ず TDR 書き込みで
+     * 送信を起動する点が重要．次バイトは TDR が空く際の TXI(TX_DATA_EMPTY) を契機に
+     * 供給する．tx_src_bytes は 0 のままにし，FSP の sci_b_uart_txi_isr には TDR を
+     * 書かせず «完了パス»（TEIE セット＋TX_DATA_EMPTY コールバック）だけを通す．
+     * その TX_DATA_EMPTY コールバック(target_uart_handler)で TEIE をクリアして TEI を
+     * 抑止し，TE が落ちない（=トグルしない）ようにしている．
+     */
+    p_ctrl->tx_src_bytes  = 0U;
+    p_ctrl->p_reg->TDR_BY = (uint8_t)ch;
+    p_ctrl->p_reg->CCR0  |= (uint32_t)R_SCI_B0_CCR0_TIE_Msk;
+    return true;
 }
 
 /*
@@ -288,10 +303,21 @@ void target_uart_handler(uart_callback_args_t * p_args)
 {
     SIOPCB *p_siopcb = &siopcb_table[INDEX_SIOP(FPUT_PORTID)];
 
-    if (p_args->event == UART_EVENT_TX_COMPLETE){
+    if (p_args->event == UART_EVENT_TX_DATA_EMPTY) {
+        /*
+         * TDR が空き次のバイトを受け付け可能になった通知．ここで «次バイト供給» を
+         * 行うことで，バイトを連続供給して TE を一切トグルしない（=先頭グリッチを
+         * 生じない）方式とする．
+         * FSP の sci_b_uart_txi_isr は tx_src_bytes が 0 になると TEIE を立てる．
+         * これを放置すると sci_b_uart_tei_isr が TE をクリアしてしまうため，ここで
+         * TEIE をクリアして TEI（=TE クリア）を抑止し，TE を Open 時の 1 のまま維持する．
+         */
+        sci_b_uart_instance_ctrl_t *p_ctrl =
+            (sci_b_uart_instance_ctrl_t *)p_siopcb->handle->p_ctrl;
+        p_ctrl->p_reg->CCR0 &= (uint32_t)~R_SCI_B0_CCR0_TEIE_Msk;
         target_uart_txi(p_siopcb);
-    } else if (p_args->event == UART_EVENT_TX_DATA_EMPTY) {
-        //target_uart_txi(p_siopcb);
+    } else if (p_args->event == UART_EVENT_TX_COMPLETE) {
+        /* TEIE を常にクリアしているため通常は発生しない（保険として無処理）． */
     } else if (p_args->event == UART_EVENT_RX_CHAR) {
         target_uart_rxi(p_siopcb, p_args->data);
     } else if (p_args->event == UART_EVENT_ERR_PARITY ||
