@@ -87,36 +87,48 @@ endif()
 
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/GeneratedSrc.cmake)
 
-# TOPPERS/ASP3 のメインプロジェクト名を渡す
+# ===== TOPPERS/ASP3 Core 取り込み（submodule＋ライブラリ専用モード） =====
+# 旧 bundled asp3/(fork) を廃止し、純カーネル asp3_core を submodule 参照する構成。
+# 経緯：asp3/asp3_core/docs/dev/fsp-integration.md
+
+# RASC コンテンツ生成ターゲット名の参照用にメインプロジェクト名を渡す
 set(ASP3_MAIN_PROJECT_NAME ${CMAKE_PROJECT_NAME})
 
 # TOPPERS/ASP3 のターゲット依存部を指定
 set(ASP3_TARGET ek_ra6m5)
 
-# TOPPERS/ASP3 の FSP 用のコンパイラ定義をインクルード
+# FSP 協調ヘルパ（ASP3_TARGET_DIR / ASP3_CORE_DIR / ASP3_ROOT_DIR を解決）
 include(${CMAKE_CURRENT_LIST_DIR}/../../asp3/asp3_fsp.cmake)
 
+# アプリ（タスク定義＝sample1.c/.cfg）は asp3_core 同梱の sample を使用
+set(ASP3_APPLDIR  ${ASP3_CORE_DIR}/sample)
+set(ASP3_APPLNAME sample1)
+
+# asp3 カーネルライブラリ（libasp3.a）をライブラリ専用モードでビルド
+# （asp 実行ファイル・サンプル・ctest は作らず、asp3 lib／cfg生成／
+#   ヘルパ関数（asp3_add_syssvc 等）のみ公開）
+set(ASP3_LIBRARY_ONLY ON CACHE BOOL "build asp3 as library only" FORCE)
+add_subdirectory(${ASP3_CORE_DIR} asp3)
+
+# 最終実行ファイルに asp3・タスク本体・システムサービスを追加
 target_link_libraries(${CMAKE_PROJECT_NAME}.elf asp3)
-
-# TOPPERS/ASP3 のカーネルオブジェクト定義のcfgファイルを設定
-set(ASP3_APP_CFG_FILE ${ASP3_ROOT_DIR}/sample/sample1.cfg)
-
-list(APPEND ASP3_INCLUDE_DIRS
-    ${ASP3_ROOT_DIR}/sample
-)
-
-# TOPPERS/ASP3 のライブラリを追加
-add_subdirectory(${ASP3_ROOT_DIR} asp3)
-
-# TOPPERS/ASP3 付属のソースファイルを追加
-include(${ASP3_ROOT_DIR}/library/library.cmake)
-include(${ASP3_ROOT_DIR}/syssvc/syssvc.cmake)
-
 target_sources(${CMAKE_PROJECT_NAME}.elf PRIVATE
-    ${ASP3_ROOT_DIR}/sample/sample1.c
+    ${ASP3_CORE_DIR}/sample/sample1.c
+)
+# 旧 library.cmake＋syssvc.cmake に相当する asp3_core のヘルパ
+asp3_add_syssvc(${CMAKE_PROJECT_NAME}.elf)
+target_include_directories(${CMAKE_PROJECT_NAME}.elf PRIVATE
+    ${ASP3_CORE_DIR}/sample
 )
 
-# TOPPERS/ASP3 を使うための FSP の設定
+# cfg1_out（FSP生成ヘッダ ra/・ra_gen/ を要する使い捨てELF）を RASC 生成に依存させる。
+# cfg1_out ターゲットは add_subdirectory(asp3_core) で生成されるため、ここで記述する
+# （target.cmake 内では未生成。PORTING_GUIDE「別ツールチェーンの併用」参照）。
+if(TARGET generate_content_${ASP3_MAIN_PROJECT_NAME})
+    add_dependencies(cfg1_out generate_content_${ASP3_MAIN_PROJECT_NAME})
+endif()
+
+# TOPPERS/ASP3 を使うための FSP の設定（現状なし）
 asp3_set_fsp_options(${CMAKE_PROJECT_NAME}.elf)
 
 # TOPPERS/ASP3 のチェックを行う（シンボルがGCされるとエラーになるので省略）

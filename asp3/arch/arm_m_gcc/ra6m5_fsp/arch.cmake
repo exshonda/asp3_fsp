@@ -8,9 +8,9 @@ list(APPEND ASP3_OFFSET_TRB_FILES
 )
 
 list(APPEND ASP3_INCLUDE_DIRS
-    ${ARCHDIR}/ra6m5_fsp
+    ${CHIPDIR}
     ${ARCHDIR}/common
-    ${PROJECT_SOURCE_DIR}/arch/gcc
+    ${ASP3_ROOT_DIR}/arch/gcc
 )
 
 list(APPEND ASP3_COMPILE_DEFS
@@ -26,4 +26,4 @@ list(APPEND ASP3_ARCH_C_FILES
 )
 set_property(SOURCE ${ARCHDIR}/common/core_support.S APPEND PROPERTY COMPILE_OPTIONS "${RASC_CMAKE_ASM_FLAGS}")
 
-set(ARCH_SERIAL ${ARCHDIR}/ra6m5_fsp/chip_serial.c)
+set(ARCH_SERIAL ${CHIPDIR}/chip_serial.c)

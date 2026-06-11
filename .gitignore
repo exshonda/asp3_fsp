@@ -28,3 +28,6 @@ ek_*/*/build/
 /ek_*/*/fsp_gen.lld
 /ek_*/*/memory_regions.lld
 /ek_*/*/ra_cfg.txt
+
+# 別ビルドディレクトリ（CLIビルド用）
+/ek_*/*/build_fsp/
