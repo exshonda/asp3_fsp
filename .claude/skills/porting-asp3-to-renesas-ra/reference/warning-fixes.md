@@ -3,6 +3,13 @@
 `-Wall -Wextra -Wconversion`（FSP のデフォルト）で警告ゼロを達成するための定型対処集。
 **原則として `-Wno-*` での抑制はせず、ソースを直す**こと。
 
+> **編集先の注意（submodule 構成）**：警告がカーネル・共通arch
+> （`asp3/asp3_core/` 配下＝kernel/・include/・arch/arm_m_gcc/common/ 等）にある場合、
+> 本リポジトリからは編集しない。asp3_core リポジトリ側で修正して submodule を更新する
+> （同リポジトリ AGENTS.md の禁則に従う。`EXC_RETURN_PREFIX` の `#ifndef` ガード等は
+> asp3_core main に取込済み）。本ファイルの対処を直接適用してよいのは FSP 固有部
+> （`asp3/arch/arm_m_gcc/ra*_fsp/`・`asp3/target/`・`ek_ra*/sample/`）のみ。
+
 ## INT 昇格による型不一致
 
 C の整数昇格で `uint16_t` 同士の演算が `int` に昇格する。戻り値を `uint16_t` に代入する場面でキャストが必要。
