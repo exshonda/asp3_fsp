@@ -481,3 +481,35 @@ GPT0 を 100MHz（GPTCLK = PLL2P 600MHz / 6，1 count = 10ns，32bit で約 42.9
   最大 0.41 秒（スタールなし）・文字化けは先頭 0xFE 1 バイトのみ
 - 95 秒連続走行（GPT ラップ 42.9 秒を 2 回跨ぐ）：ギャップ最大 0.13 秒，警告 0
 - ブート毎の挙動差（warn=38〜1867 のばらつき，task_loop の桁違い変動）が完全に消失
+
+---
+
+## Step 8: DWT CYCCNT 性能評価の時間源（EK-RA6M5 / EK-RA8M2）
+
+対象ボード: EK-RA6M5 (Cortex-M33) / EK-RA8M2 (Cortex-M85)
+
+asp3_core 側で ARM-M に追加された DWT CYCCNT 時間源（`USE_ARM_DWT_PMCNT`・
+`arch/arm_m_gcc/common/core_syssvc.h`・経緯は同 `PERF_DWT.md`）を RA ボードでも
+使えるようにした。`syssvc/histogram` の時間源を `fch_hrt()`（μs）から DWT CYCCNT
+（サイクル）に差し替え、ナノ秒精度のヒストグラムが採れる。
+
+### 変更ファイル一覧
+
+- `asp3/asp3_core`（submodule）: `6496ca7` → `81ff423` に bump（DWT CYCCNT 時間源を含む）
+- `asp3/target/ek_ra6m5/target_syssvc.h`: `core_syssvc.h` を取り込み、`USE_ARM_DWT_PMCNT`
+  定義時に `HIST_CONV_TIM`（cycles→ns・`CPU_CLOCK_HZ` 依存、`fsp.h` から取得）を定義
+- `asp3/target/ek_ra8m2/target_syssvc.h`: 同上
+
+### 使い方
+
+性能評価プログラム（`perf0`〜 等、`syssvc/histogram` 利用）を `-DUSE_ARM_DWT_PMCNT`
+付きでビルドするだけ（アプリ変更不要。DWT 有効化は `core_initialize()` が行う）。
+RA6M5=M33・RA8M2=M85 はいずれも DWT を実装する。未指定の通常ビルドは無影響
+（既定の fch_hrt のまま）。
+
+### 検証状況
+
+- asp3_core 側は実機 PICO2（Cortex-M33）で検証済み（perf0 計測オーバヘッド 140 ns）。
+- **RA ボードでのビルド・実機検証は本変更時点では未実施**（ATfE clang / RASC 生成・
+  実機が当該環境で不可）。通常ビルドは `core_syssvc.h`（フラグ off で空）を取り込む
+  だけで安全。`USE_ARM_DWT_PMCNT` 付き perf ビルドは RA 実機で要確認。
