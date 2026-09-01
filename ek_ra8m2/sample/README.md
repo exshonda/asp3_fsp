@@ -25,7 +25,7 @@
 適当な場所に作業フォルダを作成し、VS Code で開きます。`Ctrl + Shift + @` でターミナルを開き、以下のコマンドを実行します。
 
 ```powershell
-git clone https://github.com/exshonda/asp3_fsp.git .
+git clone https://github.com/toppers/asp3_fsp.git .
 ```
 
 ## ワークスペースを開く

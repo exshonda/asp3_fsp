@@ -181,7 +181,7 @@ FSP の UART ドライバは MCU 系列で異なる（`r_sci_uart` vs `r_sci_b_u
 ## 参考リポジトリ・ドキュメント
 
 - 本リポジトリ: `asp3_fsp`（EK-RA6M5、EK-RA8M2 対応済み）
-- 純カーネル: [asp3_core](https://github.com/exshonda/asp3_core)（submodule・public）。
+- 純カーネル: [asp3_core](https://github.com/toppers/asp3_core)（submodule・public）。
   規約は `asp3/asp3_core/AGENTS.md`、外部ターゲット規約は同 `docs/porting/PORTING_GUIDE.md`、
   FSP統合の経緯・検証記録は同 `docs/dev/fsp-integration.md`
 - 旧 fork 時代の移植記録: リポジトリ直下 `asp3_change.md`（M85 FPU/MVE 対応の recipe）
