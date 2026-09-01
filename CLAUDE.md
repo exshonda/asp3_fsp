@@ -36,7 +36,7 @@ asp3_fsp/
 ## 2. 取得・ビルド・実機確認
 
 ```bash
-git clone --recurse-submodules https://github.com/exshonda/asp3_fsp.git
+git clone --recurse-submodules https://github.com/toppers/asp3_fsp.git
 # 既存clone: git submodule update --init --recursive
 ```
 

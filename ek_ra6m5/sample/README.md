@@ -10,7 +10,7 @@
 適当な場所に作業フォルダを作成し、そこをVSCodeで開きます。「Ctrl + Shift + @」でターミナルを開き、下記のコマンドを実行してコードをダウンロードします。
 
 ```powershell
-git clone https://github.com/exshonda/asp3_fsp.git .
+git clone https://github.com/toppers/asp3_fsp.git .
 ```
 
 ## ワークスペースを開く
